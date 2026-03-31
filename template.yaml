@@ -34,6 +34,8 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref NodeEnv
+      BinaryMediaTypes:
+        - "*/*"
       CacheClusterEnabled: !If [IsCacheEnabled, true, false]
       CacheClusterSize: !If [IsCacheEnabled, "0.5", !Ref "AWS::NoValue"]
       MethodSettings:
