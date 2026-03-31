@@ -83,3 +83,13 @@ jobs:
       - uses: aws-actions/setup-sam@v2
       - run: sam build --skip-pull-image
       - run: sam deploy --config-env production
+
+      - name: Update repository URL
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name duitama-taxi-pricing-production \
+            --query "Stacks[0].Outputs[0].OutputValue" \
+            --output text)
+          gh repo edit --homepage "$API_URL/docs"
