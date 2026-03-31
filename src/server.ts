@@ -78,7 +78,8 @@ app.use((_req, res) => {
 
 // Handler global de errores inesperados
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err.stack);
+  const sanitized = (err.stack ?? err.message).replace(/[\r\n]/g, " ");
+  console.error(sanitized);
   res.status(500).json({
     success: false,
     timestamp: new Date().toISOString(),

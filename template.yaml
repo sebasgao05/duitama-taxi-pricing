@@ -28,10 +28,6 @@ Globals:
         CACHE_TTL: !Ref CacheTtl
   Api:
     OpenApiVersion: 3.0.1
-    Cors:
-      AllowMethods: "'GET,POST,OPTIONS'"
-      AllowHeaders: "'Content-Type'"
-      AllowOrigin: "'*'"
 
 Resources:
   TaxiRestApi:
