@@ -44,7 +44,15 @@ app.use("/api/v2026", fareRoutes);
 // Swagger docs
 try {
   const swaggerDoc = YAML.load(path.join(__dirname, "swagger.yaml"));
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+  app.use("/docs", swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {
+    const protocol = req.headers["x-forwarded-proto"] ?? req.protocol;
+    const host = req.headers["x-forwarded-host"] ?? req.headers.host;
+    const dynamicDoc = {
+      ...swaggerDoc,
+      servers: [{ url: `${protocol}://${host}/api/v2026`, description: process.env.NODE_ENV ?? "local" }],
+    };
+    swaggerUi.setup(dynamicDoc)(req, res, next);
+  });
 } catch {
   app.get("/docs", (_req, res) => res.status(503).json({ error: "Docs no disponibles" }));
 }
