@@ -1,4 +1,7 @@
 import { configure } from "@vendia/serverless-express";
 import app from "./server";
 
-export const handler = configure({ app });
+export const handler = configure({
+  app,
+  binarySettings: { isBinary: () => false },
+});
