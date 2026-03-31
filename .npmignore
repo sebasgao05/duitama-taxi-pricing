@@ -1,0 +1,8 @@
+src/
+coverage/
+.github/
+*.test.ts
+tsconfig.json
+jest.config.json
+.env
+.env.example

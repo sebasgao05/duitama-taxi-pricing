@@ -1,0 +1,12 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "duitama-taxi-pricing"
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+region = "us-east-1"
+s3_prefix = "duitama-taxi-pricing"
+resolve_s3 = true
+confirm_changeset = false
+fail_on_empty_changeset = false
