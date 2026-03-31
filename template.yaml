@@ -16,8 +16,6 @@ Resources:
     Properties:
       Handler: dist/lambda.handler
       CodeUri: .
-      Metadata:
-        BuildMethod: nodejs20.x
       Events:
         ProxyAny:
           Type: HttpApi
