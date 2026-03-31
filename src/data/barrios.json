@@ -1,0 +1,49 @@
+{
+  "_descripcion": "Tarifas generales (viajes que NO involucran el Terminal de Transporte ni Carrera 42)",
+  "primer_sector": [
+    "Santander", "Sevilla", "Barrio Las Lajas", "Cándido Quintero",
+    "La Esperanza", "La Tolosa", "La Milagrosa", "Cundinamarca", "El Cargua",
+    "Villa Patricia", "Colombia", "Colegio Nueva la Familia", "Puente San Luis",
+    "El Mirto", "Torres de Santa Isabel", "Col. Francisco de Paula Santander",
+    "Cerro Pino", "Las Delicias", "Villa Korina", "Vaticano", "San Fernando",
+    "Técnico Rafael Reyes", "Col. La Presentación Norte",
+    "Villa Juliana", "Urb. Altos del Marantá", "Villa Inés",
+    "San José", "Col. La Presentación del Norte",
+    "Villa del Prado", "Villa del Río", "Juan Grande", "Cacique Tundama",
+    "Frigocentro", "Brasas Campestre", "Navitrans", "Centro Camionero",
+    "Ciudadela Guadalupe", "Las Nieves", "El Diamante",
+    "Simón Bolívar", "Barrio Siratá", "Col. La Nueva Familia", "Boyacá",
+    "Higueras", "Puente San Luis"
+  ],
+  "segundo_sector": [
+    "Parte Alta Milagrosa", "Comunal", "Once de Mayo",
+    "Pueblito Boyacense", "La Parroquia", "San Luis", "San Carlos",
+    "San Pedro Salón", "Higueras", "Villa del Prado", "Villa del Río",
+    "Juan Grande", "Cacique Tundama", "Frigocentro",
+    "Urb. Rancherías", "Virgen de la Gruta",
+    "Urb. Loma Linda", "Rincón del Cargua", "Panorama Parte Alta",
+    "Terraza Siglo XXI", "Las Delicias", "Manzanares", "Villa Patricia",
+    "Colombia Capilla Divino Niño", "Tadeo Prieto", "Cerro Pino",
+    "Casa del Menor", "Villa del Río"
+  ],
+  "tarifa_especial": [
+    "Barrio León XIII", "Ciudadela Guadalupe", "Solares de la Arboleda",
+    "Las Nieves", "El Diamante", "San Antonio Norte", "Salón Comunal Tocogua",
+    "Barrio San José Alto", "Cándido Quintero Parte Alta Calle 2",
+    "Casa del Menor", "San Carlos", "San Pedro Salón Comunal", "La Parroquia",
+    "Panorama", "Urbanización Ranchería", "La Gruta", "Barrio Libertador",
+    "Usochicamocha", "Urb. Loma Linda", "Panorama Parte Alta",
+    "Sector El Hogar", "Pueblito Boyacense Arriba", "Casa de la Campana"
+  ],
+  "tercer_sector": [
+    "Sauna La Frontera", "Las Margaritas", "Cogollo Polideportivo", "Ojo de Agua",
+    "Zaguan del Cuacuy", "Capilla Tocogua", "Estación Moreno",
+    "Ojo de Agua (Tocogua)", "Once de Mayo", "San Antonio Norte (parque)"
+  ],
+  "cuarto_sector": [
+    "Cogollo Alto", "Vereda Siratá (paradero Tures)", "Confaboy Campestre",
+    "Usochicamocha", "Unad", "Cogollo Polideportivo",
+    "Vereda Siratá (Paradero Tures)", "Clínica Biosalud",
+    "Altos de Surba y Bonza", "Restaurante Lambrusco"
+  ]
+}

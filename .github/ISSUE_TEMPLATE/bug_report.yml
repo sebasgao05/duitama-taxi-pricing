@@ -1,0 +1,41 @@
+name: 🐛 Reporte de bug
+description: Reportar un error en el cálculo de tarifas o la API
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Gracias por reportar el bug. Completa los campos para que podamos reproducirlo."
+
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción del problema
+      placeholder: ¿Qué ocurre? ¿Qué esperabas que ocurriera?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduccion
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Llamar POST /api/v2026/calculate-fare con body { "origen": "...", "destino": "..." }
+        2. La respuesta devuelve...
+    validations:
+      required: true
+
+  - type: textarea
+    id: respuesta
+    attributes:
+      label: Respuesta actual vs esperada
+      placeholder: |
+        Actual: { "tarifa": 7000 }
+        Esperada: { "tarifa": 7900 }
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versión de Node.js
+      placeholder: "ej: 20.11.0"

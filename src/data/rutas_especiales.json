@@ -1,0 +1,37 @@
+[
+  {
+    "id": "ruta_1",
+    "nombre": "Ruta del Mundial / Cogollo / Campohermoso",
+    "descripcion": "Ruta del Mundial (Divino Niño), Cogollo, Campohermoso (Placa Huella), Confaboy Campestre (si se toma desde o hacia el terminal de transporte)",
+    "zonas": ["Divino Niño", "Cogollo", "Campohermoso", "Placa Huella", "Confaboy Campestre", "Terminal de Transporte"],
+    "tarifa": { "dia": 15000, "nocturno": 15800 }
+  },
+  {
+    "id": "ruta_2",
+    "nombre": "Ruta del Mundial / Tribuna Mirador / Seminario Mayor",
+    "descripcion": "Ruta del Mundial (Tribuna Mirador), Seminario Mayor, Juriscoop, Puente de la Balsa, Altos de Surba y Bonza (si se toma desde o hacia el centro)",
+    "zonas": ["Tribuna Mirador", "Seminario Mayor", "Juriscoop", "Puente de la Balsa", "Altos de Surba y Bonza"],
+    "tarifa": { "dia": 16200, "nocturno": 16700 }
+  },
+  {
+    "id": "ruta_3",
+    "nombre": "Ciudadela Industrial / Centro Abastos / Lecheboy",
+    "descripcion": "Ciudadela Industrial, Centro Abastos (Portería), Lecheboy, Grupo Silva Plazas, Santa Clara",
+    "zonas": ["Ciudadela Industrial", "Centro Abastos", "Portería", "Lecheboy", "Grupo Silva Plazas", "Santa Clara"],
+    "tarifa": { "dia": 19100, "nocturno": 19700 }
+  },
+  {
+    "id": "ruta_4",
+    "nombre": "Vereda La Trinidad / La Helida",
+    "descripcion": "Vereda La Trinidad, La Helida",
+    "zonas": ["Vereda La Trinidad", "La Trinidad", "La Helida"],
+    "tarifa": { "dia": 22200, "nocturno": 23300 }
+  },
+  {
+    "id": "servicio_horas",
+    "nombre": "Prestación de servicio por horas",
+    "descripcion": "Prestación de servicio por horas bajo el entendido que el servicio prestado es en radio acción del municipio de Duitama",
+    "zonas": [],
+    "tarifa": { "dia": 36100, "nocturno": 36100 }
+  }
+]

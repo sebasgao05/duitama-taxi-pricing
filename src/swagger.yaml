@@ -1,0 +1,264 @@
+openapi: "3.0.0"
+info:
+  title: Duitama Taxi Pricing API
+  description: API de tarifas de taxi Duitama 2026 - Decreto 033 del 16 de enero de 2026
+  version: "1.0.0"
+servers:
+  - url: http://localhost:3000/api/v2026
+paths:
+  /calculate-fare:
+    post:
+      summary: Calcular tarifa de un viaje
+      description: >
+        Recibe origen y destino. La hora y fecha se toman automáticamente
+        del servidor en zona horaria Colombia (UTC-5).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FareRequest"
+            example:
+              origen: "San Fernando"
+              destino: "Cogollo Alto"
+      responses:
+        "200":
+          description: Tarifa calculada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FareResponse"
+              example:
+                success: true
+                timestamp: "2026-03-10T14:30:00.000Z"
+                request_id: "a1b2c3d4-e5f6-4789-abcd-ef1234567890"
+                data:
+                  origen: "San Fernando"
+                  destino: "Cogollo Alto"
+                  hora_consulta: "09:30"
+                  fecha_consulta: "2026-03-10"
+                  tarifa: 12600
+                  tipo: "diurna"
+                  sector_aplicado: "cuarto sector"
+                  detalle: "Tarifa base cuarto sector diurna"
+                  recargos: []
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Barrio no encontrado en ningún sector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /rutas-especiales:
+    get:
+      summary: Listar todas las rutas con tarifa especial única
+      description: Retorna las rutas del decreto con precio fijo independiente del sector.
+      responses:
+        "200":
+          description: Lista de rutas especiales únicas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  timestamp:
+                    type: string
+                    format: date-time
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RutaEspecial"
+              example:
+                success: true
+                timestamp: "2026-03-10T14:30:00.000Z"
+                data:
+                  - id: "ruta_1"
+                    nombre: "Ruta del Mundial / Cogollo / Campohermoso"
+                    descripcion: "Ruta del Mundial (Divino Niño), Cogollo, Campohermoso..."
+                    zonas: ["Divino Niño", "Cogollo", "Campohermoso", "Terminal de Transporte"]
+                    tarifa_dia: 15000
+                    tarifa_nocturna: 15800
+  /zones:
+    get:
+      summary: Obtener sectores con colores para mapa
+      responses:
+        "200":
+          description: Lista de sectores con barrios y colores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  timestamp:
+                    type: string
+                    format: date-time
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Zone"
+  /sector:
+    get:
+      summary: Consultar el sector de un barrio
+      parameters:
+        - in: query
+          name: barrio
+          required: true
+          schema:
+            type: string
+          example: "San Fernando"
+      responses:
+        "200":
+          description: Sector encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  timestamp:
+                    type: string
+                    format: date-time
+                  data:
+                    type: object
+                    properties:
+                      barrio:
+                        type: string
+                      sector:
+                        type: string
+        "400":
+          description: Parámetro faltante
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Barrio no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    FareRequest:
+      type: object
+      required: [origen, destino]
+      properties:
+        origen:
+          type: string
+          example: "San Fernando"
+        destino:
+          type: string
+          example: "Cogollo Alto"
+    FareResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Momento exacto de la consulta en UTC (ISO 8601)
+        request_id:
+          type: string
+          format: uuid
+          description: Identificador único de la solicitud
+        data:
+          type: object
+          properties:
+            origen:
+              type: string
+            destino:
+              type: string
+            hora_consulta:
+              type: string
+              description: Hora en Colombia (UTC-5) al momento de la consulta
+              example: "21:30"
+            fecha_consulta:
+              type: string
+              format: date
+              description: Fecha en Colombia al momento de la consulta
+              example: "2026-04-15"
+            tarifa:
+              type: number
+              example: 12600
+            tipo:
+              type: string
+              enum: [diurna, nocturna]
+            sector_aplicado:
+              type: string
+              example: "cuarto sector"
+            detalle:
+              type: string
+            recargos:
+              type: array
+              items:
+                type: string
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+          format: uuid
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "SECTOR_NOT_FOUND"
+            message:
+              type: string
+            details:
+              type: object
+    Zone:
+      type: object
+      properties:
+        sector:
+          type: string
+        color:
+          type: string
+        tarifa_dia:
+          type: number
+        tarifa_nocturna:
+          type: number
+        barrios:
+          type: array
+          items:
+            type: string
+    RutaEspecial:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "ruta_1"
+        nombre:
+          type: string
+          example: "Ruta del Mundial / Cogollo / Campohermoso"
+        descripcion:
+          type: string
+        zonas:
+          type: array
+          items:
+            type: string
+        tarifa_dia:
+          type: number
+          example: 15000
+        tarifa_nocturna:
+          type: number
+          example: 15800

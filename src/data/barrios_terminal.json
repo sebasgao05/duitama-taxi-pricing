@@ -1,0 +1,40 @@
+{
+  "_descripcion": "Tarifas cuando el ORIGEN o DESTINO es el Terminal de Transporte o Carrera 42",
+  "primer_sector": [
+    "Cándido Quintero", "La Esperanza", "La Tolosa", "La Milagrosa",
+    "Cundinamarca", "El Cargua", "Simón Bolívar", "Barrio Siratá",
+    "Col. La Nueva Familia", "Boyacá",
+    "Higueras", "Puente San Luis", "Torres de Santa Isabel",
+    "Col Francisco de Paula Santander", "Villa Korina", "Vaticano",
+    "San Fernando", "Técnico Rafael Reyes", "San José",
+    "Col. La Presentación del Norte", "Villa Juliana",
+    "Urb. Altos del Marantá", "Villa del Prado", "Villa del Río",
+    "Juan Grande", "Cacique Tundama", "Frigocentro",
+    "Brasas Campestre", "Navitrans", "Centro Camionero",
+    "Ciudadela Guadalupe", "Las Nieves", "El Diamante"
+  ],
+  "segundo_sector": [
+    "Parte Alta Milagrosa", "Pueblito Boyacense", "Rincón del Cargua", "Cerro Pino",
+    "Las Delicias", "Terraza Siglo XXI", "Manzanares", "Villa Patricia",
+    "Colombia Capilla Divino Niño", "Tadeo Prieto"
+  ],
+  "tarifa_especial": [
+    "Barrio San José Alto", "Barrio León XIII",
+    "Cándido Quintero Parte Alta Calle 2",
+    "Casa del Menor", "San Carlos", "San Pedro Salón Comunal", "La Parroquia",
+    "Panorama", "Urbanización Ranchería", "La Gruta", "Barrio Libertador",
+    "Usochicamocha", "Salón Comunal Tocogua", "Urb. Loma Linda",
+    "Panorama Parte Alta", "Sector El Hogar", "Pueblito Boyacense Arriba",
+    "Casa de la Campana"
+  ],
+  "tercer_sector": [
+    "Ojo de Agua (Tocogua)", "Casa del Menor", "Capilla Tocogua",
+    "Once de Mayo", "San Antonio Norte (parque)"
+  ],
+  "cuarto_sector": [
+    "Sauna La Frontera", "Cogollo Polideportivo",
+    "Vereda Siratá (Paradero Tures)", "Las Margaritas",
+    "Clínica Biosalud", "Estación Moreno",
+    "Altos de Surba y Bonza", "Restaurante Lambrusco"
+  ]
+}

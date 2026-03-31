@@ -1,0 +1,33 @@
+name: ✨ Solicitud de funcionalidad
+description: Proponer una nueva funcionalidad o cambio de datos
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: "Antes de proponer, revisa los issues abiertos para evitar duplicados."
+
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo de cambio
+      options:
+        - Nueva funcionalidad (endpoint, lógica)
+        - Actualización de tarifas o barrios
+        - Mejora de documentación
+        - Otro
+    validations:
+      required: true
+
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción
+      placeholder: ¿Qué quieres agregar o cambiar y por qué?
+    validations:
+      required: true
+
+  - type: textarea
+    id: fuente
+    attributes:
+      label: Fuente oficial (si aplica)
+      placeholder: "ej: Decreto 033 del 16 de enero de 2026"

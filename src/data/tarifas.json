@@ -1,0 +1,22 @@
+{
+  "sectores": {
+    "primer_sector":  { "dia": 7000,  "nocturno": 7500  },
+    "segundo_sector": { "dia": 7900,  "nocturno": 8600  },
+    "tarifa_especial":{ "dia": 8600,  "nocturno": 9200  },
+    "tercer_sector":  { "dia": 10200, "nocturno": 10900 },
+    "cuarto_sector":  { "dia": 12600, "nocturno": 13100 }
+  },
+  "orden_sectores": [
+    "primer_sector",
+    "segundo_sector",
+    "tarifa_especial",
+    "tercer_sector",
+    "cuarto_sector"
+  ],
+  "recargo_especial": 600,
+  "horario_nocturno": { "inicio": "19:00", "fin": "05:59" },
+  "fechas_recargo_especial": {
+    "jueves_viernes_santo": true,
+    "rango_diciembre": { "desde": "12-16", "hasta": "12-31" }
+  }
+}
