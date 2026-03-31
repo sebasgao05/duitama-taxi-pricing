@@ -10,7 +10,7 @@ s3_prefix = "duitama-taxi-pricing-qa"
 resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
-parameter_overrides = "NodeEnv=qa"
+parameter_overrides = "NodeEnv=qa CacheEnabled=false CacheTtl=0"
 
 [staging.global.parameters]
 stack_name = "duitama-taxi-pricing-staging"
@@ -22,7 +22,7 @@ s3_prefix = "duitama-taxi-pricing-staging"
 resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
-parameter_overrides = "NodeEnv=staging"
+parameter_overrides = "NodeEnv=staging CacheEnabled=false CacheTtl=0"
 
 [production.global.parameters]
 stack_name = "duitama-taxi-pricing-production"
@@ -34,4 +34,4 @@ s3_prefix = "duitama-taxi-pricing-production"
 resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
-parameter_overrides = "NodeEnv=production"
+parameter_overrides = "NodeEnv=production CacheEnabled=true CacheTtl=600"

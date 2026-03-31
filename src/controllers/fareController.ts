@@ -3,6 +3,8 @@ import { fareSchema } from "../utils/validation";
 import { calcularTarifa, getZones, getSector, getRutas, getBarrios, formatSectorLabel } from "../services/fareService";
 import { generateRequestId } from "../utils/time";
 
+const CACHE_TTL = parseInt(process.env.CACHE_TTL ?? "300");
+
 export function calculateFare(req: Request, res: Response): void {
   const request_id = generateRequestId();
   const timestamp = new Date().toISOString();
@@ -49,14 +51,17 @@ export function calculateFare(req: Request, res: Response): void {
 }
 
 export function getZonesHandler(_req: Request, res: Response): void {
+  res.set("Cache-Control", `public, max-age=${CACHE_TTL}`);
   res.json({ success: true, timestamp: new Date().toISOString(), data: getZones() });
 }
 
 export function getRutasHandler(_req: Request, res: Response): void {
+  res.set("Cache-Control", `public, max-age=${CACHE_TTL}`);
   res.json({ success: true, timestamp: new Date().toISOString(), data: getRutas() });
 }
 
 export function getBarriosHandler(_req: Request, res: Response): void {
+  res.set("Cache-Control", `public, max-age=${CACHE_TTL}`);
   res.json({ success: true, timestamp: new Date().toISOString(), data: getBarrios() });
 }
 
@@ -83,6 +88,7 @@ export function getSectorHandler(req: Request, res: Response): void {
     return;
   }
 
+  res.set("Cache-Control", `public, max-age=${CACHE_TTL}`);
   res.json({
     success: true,
     timestamp,
