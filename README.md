@@ -2,36 +2,61 @@
 
 API REST para calcular tarifas de taxi en Duitama, Boyacá — Decreto 033 del 16 de enero de 2026.
 
-## Instalación
+## Arquitectura
+
+```
+GitHub Actions
+    │
+    ├── PR abierto  → test → deploy QA   (API Gateway + Lambda)
+    ├── Merge main  → test → deploy Staging → (aprobación) → deploy Production
+    │
+    └── AWS SAM → CloudFormation
+                      └── API Gateway REST ──(caché GET, solo production)──► Lambda (Node.js 20)
+                                                                                  └── Express App
+```
+
+Los artefactos se empaquetan con SAM y se suben a S3 antes del deploy.
+
+## Ambientes
+
+| Ambiente | Trigger | Caché API Gateway | URL |
+|----------|---------|-------------------|-----|
+| QA | PR a `main` | ❌ | generada por SAM |
+| Staging | Push a `main` | ❌ | generada por SAM |
+| Production | Aprobación manual | ✅ 600s en GET | generada por SAM |
+
+## Instalación local
+
+**Requisitos:** Node.js ≥ 18, npm ≥ 9
 
 ```bash
 npm install
-```
-
-## Desarrollo
-
-```bash
+cp .env.example .env
 npm run dev
 ```
 
-## Producción
+## Scripts
 
-```bash
-npm run build
-npm start
-```
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor local con hot-reload |
+| `npm run build` | Compilar TypeScript |
+| `npm run build:lambda` | Compilar + copiar swagger.yaml a dist/ |
+| `npm start` | Servidor producción |
+| `npm test` | Correr tests |
+| `npm run test:coverage` | Tests con cobertura |
 
 ## Endpoints
 
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `POST` | `/api/v2026/calculate-fare` | Calcular tarifa de un viaje |
-| `GET` | `/api/v2026/zones` | Sectores con colores para mapa |
-| `GET` | `/api/v2026/sector?barrio=...` | Consultar sector de un barrio |
-| `GET` | `/api/v2026/barrios` | Barrios agrupados por sector |
-| `GET` | `/api/v2026/rutas-especiales` | Rutas con tarifa fija |
-| `GET` | `/docs` | Documentación Swagger |
-| `GET` | `/health` | Health check |
+| Método | Ruta | Descripción | Caché |
+|--------|------|-------------|-------|
+| `POST` | `/api/v2026/calculate-fare` | Calcular tarifa de un viaje | ❌ |
+| `GET` | `/api/v2026/zones` | Sectores con colores para mapa | ✅ |
+| `GET` | `/api/v2026/sector?barrio=...` | Consultar sector de un barrio | ✅ |
+| `GET` | `/api/v2026/barrios` | Barrios agrupados por sector | ✅ |
+| `GET` | `/api/v2026/rutas-especiales` | Rutas con tarifa fija | ✅ |
+| `GET` | `/docs` | Documentación Swagger | — |
+| `GET` | `/health` | Health check | ❌ |
 
 ## Ejemplo de uso
 
@@ -45,11 +70,20 @@ curl -X POST http://localhost:3000/api/v2026/calculate-fare \
 
 ```json
 {
-  "tarifa": 7500,
-  "tipo": "nocturna",
-  "sector_aplicado": "primer sector",
-  "detalle": "Tarifa base primer sector nocturna",
-  "recargos": []
+  "success": true,
+  "timestamp": "2026-03-10T14:30:00.000Z",
+  "request_id": "a1b2c3d4-e5f6-4789-abcd-ef1234567890",
+  "data": {
+    "origen": "San Fernando",
+    "destino": "Centro",
+    "hora_consulta": "09:30",
+    "fecha_consulta": "2026-03-10",
+    "tarifa": 7000,
+    "tipo": "diurna",
+    "sector_aplicado": "primer sector",
+    "detalle": "Tarifa base primer sector diurna",
+    "recargos": []
+  }
 }
 ```
 
@@ -70,3 +104,20 @@ curl -X POST http://localhost:3000/api/v2026/calculate-fare \
 | Tarifa especial | $8.600 | $9.200 |
 | Tercer sector | $10.200 | $10.900 |
 | Cuarto sector | $12.600 | $13.100 |
+
+## CI/CD
+
+El pipeline usa **GitHub Actions + AWS SAM**:
+
+- `test` — corre en todo PR y push a `main`
+- `deploy-qa` — se dispara al abrir un PR, despliega al stack QA
+- `deploy-staging` — se dispara al hacer merge a `main`
+- `deploy-production` — requiere aprobación manual en GitHub Environments
+
+**Secrets requeridos en GitHub:**
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+## Contribuir
+
+Ver [CONTRIBUTING.md](./CONTRIBUTING.md).
