@@ -42,8 +42,12 @@ app.use(
 app.use("/api/v2026", fareRoutes);
 
 // Swagger docs
-const swaggerDoc = YAML.load(path.join(__dirname, "swagger.yaml"));
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+try {
+  const swaggerDoc = YAML.load(path.join(__dirname, "swagger.yaml"));
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+} catch {
+  app.get("/docs", (_req, res) => res.status(503).json({ error: "Docs no disponibles" }));
+}
 
 // Health check
 app.get("/health", (_req, res) =>

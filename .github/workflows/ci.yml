@@ -45,7 +45,7 @@ jobs:
       - uses: aws-actions/setup-sam@v2
 
       - name: SAM build
-        run: sam build
+        run: sam build --skip-pull-image
 
       - name: SAM deploy
         run: sam deploy
