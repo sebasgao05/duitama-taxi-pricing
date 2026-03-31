@@ -6,6 +6,16 @@ Parameters:
     Type: String
     Default: production
     AllowedValues: [qa, staging, production]
+  CacheEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  CacheTtl:
+    Type: Number
+    Default: 600
+
+Conditions:
+  IsCacheEnabled: !Equals [!Ref CacheEnabled, "true"]
 
 Globals:
   Function:
@@ -15,8 +25,42 @@ Globals:
     Environment:
       Variables:
         NODE_ENV: !Ref NodeEnv
+        CACHE_TTL: !Ref CacheTtl
+  Api:
+    OpenApiVersion: 3.0.1
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type'"
+      AllowOrigin: "'*'"
 
 Resources:
+  TaxiRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref NodeEnv
+      CacheClusterEnabled: !If [IsCacheEnabled, true, false]
+      CacheClusterSize: !If [IsCacheEnabled, "0.5", !Ref "AWS::NoValue"]
+      MethodSettings:
+        - ResourcePath: /api/v2026/zones
+          HttpMethod: GET
+          CachingEnabled: !If [IsCacheEnabled, true, false]
+          CacheTtlInSeconds: !Ref CacheTtl
+        - ResourcePath: /api/v2026/barrios
+          HttpMethod: GET
+          CachingEnabled: !If [IsCacheEnabled, true, false]
+          CacheTtlInSeconds: !Ref CacheTtl
+        - ResourcePath: /api/v2026/rutas-especiales
+          HttpMethod: GET
+          CachingEnabled: !If [IsCacheEnabled, true, false]
+          CacheTtlInSeconds: !Ref CacheTtl
+        - ResourcePath: /api/v2026/sector
+          HttpMethod: GET
+          CachingEnabled: !If [IsCacheEnabled, true, false]
+          CacheTtlInSeconds: !Ref CacheTtl
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          CachingEnabled: false
+
   TaxiApi:
     Type: AWS::Serverless::Function
     Properties:
@@ -24,16 +68,18 @@ Resources:
       CodeUri: .
       Events:
         ProxyAny:
-          Type: HttpApi
+          Type: Api
           Properties:
+            RestApiId: !Ref TaxiRestApi
             Path: /{proxy+}
             Method: ANY
         Root:
-          Type: HttpApi
+          Type: Api
           Properties:
+            RestApiId: !Ref TaxiRestApi
             Path: /
             Method: ANY
 
 Outputs:
   ApiUrl:
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+    Value: !Sub "https://${TaxiRestApi}.execute-api.${AWS::Region}.amazonaws.com/${NodeEnv}"
