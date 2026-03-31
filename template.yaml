@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  NodeEnv:
+    Type: String
+    Default: production
+    AllowedValues: [qa, staging, production]
+
 Globals:
   Function:
     Runtime: nodejs20.x
@@ -8,7 +14,7 @@ Globals:
     MemorySize: 256
     Environment:
       Variables:
-        NODE_ENV: production
+        NODE_ENV: !Ref NodeEnv
 
 Resources:
   TaxiApi:
