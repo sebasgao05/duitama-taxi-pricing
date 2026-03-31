@@ -7,11 +7,13 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
+    "build:lambda": "tsc && node -e \"require('fs').copyFileSync('src/swagger.yaml','dist/swagger.yaml')\"",
     "start": "node dist/server.js",
     "test": "jest --config jest.config.json",
     "test:coverage": "jest --config jest.config.json --coverage"
   },
   "dependencies": {
+    "@vendia/serverless-express": "^4.12.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
@@ -22,6 +24,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/morgan": "^1.9.10",
