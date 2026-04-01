@@ -2,7 +2,6 @@ import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import path from "path";
@@ -12,31 +11,25 @@ const app = express();
 const PORT = process.env.PORT ?? 3000;
 
 // Seguridad — headers HTTP
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        imgSrc: ["'self'", "data:", "https://unpkg.com"],
+        connectSrc: ["'self'"],
+      },
+    },
+  })
+);
 
 // Logging de requests
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 // Parseo JSON con límite de tamaño
 app.use(express.json({ limit: "10kb" }));
-
-// Rate limiting — 60 requests por IP por minuto
-app.use(
-  "/api",
-  rateLimit({
-    windowMs: 60 * 1000,
-    max: 60,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: {
-      success: false,
-      error: {
-        code: "RATE_LIMIT_EXCEEDED",
-        message: "Demasiadas solicitudes. Intente de nuevo en un minuto.",
-      },
-    },
-  })
-);
 
 // Rutas API v2026
 app.use("/api/v2026", fareRoutes);
@@ -51,7 +44,13 @@ try {
       ...swaggerDoc,
       servers: [{ url: `${protocol}://${host}/api/v2026`, description: process.env.NODE_ENV ?? "local" }],
     };
-    swaggerUi.setup(dynamicDoc)(req, res, next);
+    swaggerUi.setup(dynamicDoc, {
+      customCssUrl: "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
+      customJs: [
+        "https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js",
+        "https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js",
+      ],
+    })(req, res, next);
   });
 } catch {
   app.get("/docs", (_req, res) => res.status(503).json({ error: "Docs no disponibles" }));
