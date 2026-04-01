@@ -1,5 +1,18 @@
 # duitama-taxi-pricing
 
+[![Last Commit](https://img.shields.io/github/last-commit/sebasgao05/duitama-taxi-pricing?logo=git&logoColor=white)](https://github.com/sebasgao05/duitama-taxi-pricing/commits/main)
+[![Coverage](https://codecov.io/gh/sebasgao05/duitama-taxi-pricing/branch/main/graph/badge.svg)](https://codecov.io/gh/sebasgao05/duitama-taxi-pricing)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/sebasgao05/duitama-taxi-pricing/ci.yml?branch=main&logo=githubactions&logoColor=white&label=CI%2FCD)](https://github.com/sebasgao05/duitama-taxi-pricing/actions/workflows/ci.yml)
+[![Open Issues](https://img.shields.io/github/issues/sebasgao05/duitama-taxi-pricing?logo=github)](https://github.com/sebasgao05/duitama-taxi-pricing/issues)
+[![Open PRs](https://img.shields.io/github/issues-pr/sebasgao05/duitama-taxi-pricing?logo=github&label=pull%20requests)](https://github.com/sebasgao05/duitama-taxi-pricing/pulls)
+
+[![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Express](https://img.shields.io/badge/Express-5.2-000000?logo=express&logoColor=white)](https://expressjs.com)
+[![Zod](https://img.shields.io/badge/Zod-4.3-3E67B1?logo=zod&logoColor=white)](https://zod.dev)
+[![Jest](https://img.shields.io/badge/Jest-30-C21325?logo=jest&logoColor=white)](https://jestjs.io)
+[![AWS SAM](https://img.shields.io/badge/AWS%20SAM-Lambda-FF9900?logo=awslambda&logoColor=white)](https://aws.amazon.com/serverless/sam)
+
 API REST para calcular tarifas de taxi en Duitama, Boyacá — Decreto 033 del 16 de enero de 2026.
 
 ## Arquitectura
