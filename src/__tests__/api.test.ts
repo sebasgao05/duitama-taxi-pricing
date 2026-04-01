@@ -2,6 +2,7 @@ import supertest from "supertest";
 import app from "../server";
 
 const api = supertest(app);
+const post = (url: string) => api.post(url).set("Content-Type", "application/json");
 
 jest.mock("../utils/time", () => {
   const original = jest.requireActual("../utils/time");
@@ -20,8 +21,7 @@ describe("POST /api/v2026/calculate-fare", () => {
       ["Sauna La Frontera", "San Fernando", 10200, "tercer sector"],
       ["Cogollo Alto", "San Fernando", 12600, "cuarto sector"],
     ])("%s → %s = $%i (%s)", async (origen, destino, tarifa, sector) => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen, destino });
 
       expect(res.status).toBe(200);
@@ -35,8 +35,7 @@ describe("POST /api/v2026/calculate-fare", () => {
 
   describe("Sector más alto entre origen y destino", () => {
     it("primer + cuarto → cuarto sector ($12.600)", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Santander", destino: "Cogollo Alto" });
 
       expect(res.body.data.tarifa).toBe(12600);
@@ -44,8 +43,7 @@ describe("POST /api/v2026/calculate-fare", () => {
     });
 
     it("tercer + segundo → tercer sector ($10.200)", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Sauna La Frontera", destino: "Parte Alta Milagrosa" });
 
       expect(res.body.data.tarifa).toBe(10200);
@@ -65,8 +63,7 @@ describe("POST /api/v2026/calculate-fare", () => {
       ["Sauna La Frontera", "San Fernando", 10900],
       ["Cogollo Alto", "San Fernando", 13100],
     ])("%s → %s nocturno = $%i", async (origen, destino, tarifa) => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen, destino });
 
       expect(res.body.data.tarifa).toBe(tarifa);
@@ -79,8 +76,7 @@ describe("POST /api/v2026/calculate-fare", () => {
       const { getNowColombia } = require("../utils/time");
       getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-12-16" });
 
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Santander", destino: "San Fernando" });
 
       expect(res.body.data.tarifa).toBe(7600);
@@ -91,8 +87,7 @@ describe("POST /api/v2026/calculate-fare", () => {
       const { getNowColombia } = require("../utils/time");
       getNowColombia.mockReturnValue({ hora: "22:00", fecha: "2026-04-03" });
 
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Santander", destino: "San Fernando" });
 
       expect(res.body.data.tarifa).toBe(8100);
@@ -103,8 +98,7 @@ describe("POST /api/v2026/calculate-fare", () => {
       const { getNowColombia } = require("../utils/time");
       getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-03-10" });
 
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Santander", destino: "San Fernando" });
 
       expect(res.body.data.tarifa).toBe(7000);
@@ -124,8 +118,7 @@ describe("POST /api/v2026/calculate-fare", () => {
       ["Ciudadela Industrial", "Lecheboy", 19100, "Ciudadela Industrial / Centro Abastos / Lecheboy"],
       ["La Trinidad", "La Helida", 22200, "Vereda La Trinidad / La Helida"],
     ])("%s → %s = $%i", async (origen, destino, tarifa, detalle) => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen, destino });
 
       expect(res.body.data.tarifa).toBe(tarifa);
@@ -136,8 +129,7 @@ describe("POST /api/v2026/calculate-fare", () => {
 
   describe("Tolerancia a tildes y mayúsculas", () => {
     it("acepta nombres en minúsculas sin tildes", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "san fernando", destino: "santander" });
 
       expect(res.status).toBe(200);
@@ -145,8 +137,7 @@ describe("POST /api/v2026/calculate-fare", () => {
     });
 
     it("acepta nombres en mayúsculas", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "COGOLLO ALTO", destino: "SAN FERNANDO" });
 
       expect(res.status).toBe(200);
@@ -156,8 +147,7 @@ describe("POST /api/v2026/calculate-fare", () => {
 
   describe("Metadata en respuesta", () => {
     it("incluye success, timestamp, request_id y campos de consulta", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Santander", destino: "San Fernando" });
 
       expect(res.body.success).toBe(true);
@@ -174,8 +164,7 @@ describe("POST /api/v2026/calculate-fare", () => {
 
   describe("Errores de validación", () => {
     it("400 si falta origen", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ destino: "San Fernando" });
 
       expect(res.status).toBe(400);
@@ -184,8 +173,7 @@ describe("POST /api/v2026/calculate-fare", () => {
     });
 
     it("400 si falta destino", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "Santander" });
 
       expect(res.status).toBe(400);
@@ -193,13 +181,12 @@ describe("POST /api/v2026/calculate-fare", () => {
     });
 
     it("400 si body vacío", async () => {
-      const res = await api.post("/api/v2026/calculate-fare").send({});
+      const res = await post("/api/v2026/calculate-fare").send({});
       expect(res.status).toBe(400);
     });
 
     it("422 si ambos barrios no existen", async () => {
-      const res = await api
-        .post("/api/v2026/calculate-fare")
+      const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "BarrioFalso", destino: "OtroFalso" });
 
       expect(res.status).toBe(422);
@@ -278,8 +265,7 @@ describe("POST /api/v2026/calculate-fare — Tarifas desde/hacia Terminal", () =
     ["Carrera 42", "San Fernando", 7000, "primer sector"],
     ["San Fernando", "Terminal de Transporte", 7000, "primer sector"],
   ])("%s → %s = $%i (%s)", async (origen, destino, tarifa, sector) => {
-    const res = await api
-      .post("/api/v2026/calculate-fare")
+    const res = await post("/api/v2026/calculate-fare")
       .send({ origen, destino });
 
     expect(res.status).toBe(200);
@@ -289,14 +275,12 @@ describe("POST /api/v2026/calculate-fare — Tarifas desde/hacia Terminal", () =
   });
 
   it("Sauna La Frontera general (tercer sector) vs Terminal (cuarto sector)", async () => {
-    const general = await api
-      .post("/api/v2026/calculate-fare")
+    const general = await post("/api/v2026/calculate-fare")
       .send({ origen: "Sauna La Frontera", destino: "San Fernando" });
     expect(general.body.data.tarifa).toBe(10200);
     expect(general.body.data.sector_aplicado).toBe("tercer sector");
 
-    const terminal = await api
-      .post("/api/v2026/calculate-fare")
+    const terminal = await post("/api/v2026/calculate-fare")
       .send({ origen: "Terminal de Transporte", destino: "Sauna La Frontera" });
     expect(terminal.body.data.tarifa).toBe(12600);
     expect(terminal.body.data.sector_aplicado).toBe("cuarto sector");
