@@ -83,7 +83,7 @@ try {
       --c-surface:   #1a2332;
       --c-border:    #2a3a4a;
       --c-text:      #e2e8f0;
-      --c-muted:     #94a3b8;
+      --c-muted:     #b8c5d6;
       --c-accent:    #4ade80;
       --c-accent2:   #60a5fa;
       --c-post-bg:   #0f2a1e;
@@ -329,6 +329,12 @@ try {
 <div id="swagger-ui"></div>
 <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
 <script>
+function toggleTheme() {
+  const dark = document.body.classList.toggle("dark");
+  document.getElementById("theme-btn").innerHTML = dark ? "&#9728; Modo claro" : "&#127769; Modo oscuro";
+  localStorage.setItem("docs-theme", dark ? "dark" : "light");
+}
+if (localStorage.getItem("docs-theme") === "light") toggleTheme();
 SwaggerUIBundle({
   spec: ${JSON.stringify(spec)},
   dom_id: "#swagger-ui",
@@ -338,12 +344,6 @@ SwaggerUIBundle({
   defaultModelsExpandDepth: 1,
   defaultModelExpandDepth: 1,
 });
-function toggleTheme() {
-  const dark = document.body.classList.toggle("dark");
-  document.getElementById("theme-btn").innerHTML = dark ? "&#9728; Modo claro" : "&#127769; Modo oscuro";
-  localStorage.setItem("docs-theme", dark ? "dark" : "light");
-}
-if (localStorage.getItem("docs-theme") === "light") toggleTheme();
 </script>
 </body></html>`);
   });
