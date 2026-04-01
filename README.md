@@ -30,6 +30,8 @@ GitHub Actions
 
 Los artefactos se empaquetan con SAM y se suben a S3 antes del deploy.
 
+> El stage de API Gateway (`/qa`, `/staging`, `/production`) se elimina automáticamente del path antes de llegar a Express, por lo que las rutas funcionan igual en todos los ambientes.
+
 ## Ambientes
 
 | Ambiente | Trigger | Caché API Gateway | URL |
@@ -59,6 +61,13 @@ npm run dev
 | `npm test` | Correr tests |
 | `npm run test:coverage` | Tests con cobertura |
 
+## Seguridad
+
+- Headers HTTP seguros con `helmet` (CSP configurado para permitir Swagger UI desde CDN)
+- Inputs de headers HTTP sanitizados para prevenir XSS en `/docs`
+- Sin rate limiting — API pública sin autenticación
+- Ver [SECURITY.md](./SECURITY.md) para reportar vulnerabilidades
+
 ## Endpoints
 
 | Método | Ruta | Descripción | Caché |
@@ -66,7 +75,8 @@ npm run dev
 | `POST` | `/api/v2026/calculate-fare` | Calcular tarifa de un viaje | ❌ |
 | `GET` | `/api/v2026/zones` | Sectores con colores para mapa | ✅ |
 | `GET` | `/api/v2026/sector?barrio=...` | Consultar sector de un barrio | ✅ |
-| `GET` | `/api/v2026/barrios` | Barrios agrupados por sector | ✅ |
+| `GET` | `/api/v2026/barrios` | Barrios agrupados por sector (general + terminal) | ✅ |
+| `GET` | `/docs` | Documentación Swagger (modo oscuro/claro) | — |
 | `GET` | `/api/v2026/rutas-especiales` | Rutas con tarifa fija | ✅ |
 | `GET` | `/docs` | Documentación Swagger | — |
 | `GET` | `/health` | Health check | ❌ |

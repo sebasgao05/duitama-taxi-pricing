@@ -86,6 +86,38 @@ paths:
                     zonas: ["Divino Niño", "Cogollo", "Campohermoso", "Terminal de Transporte"]
                     tarifa_dia: 15000
                     tarifa_nocturna: 15800
+  /barrios:
+    get:
+      summary: Barrios agrupados por sector
+      description: Retorna todos los barrios organizados por sector, tanto tabla general como tabla terminal.
+      responses:
+        "200":
+          description: Barrios agrupados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  timestamp:
+                    type: string
+                    format: date-time
+                  data:
+                    type: object
+                    properties:
+                      general:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
+                      terminal:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
   /zones:
     get:
       summary: Obtener sectores con colores para mapa

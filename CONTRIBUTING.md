@@ -125,6 +125,7 @@ docs: agregar ejemplos de curl en README
 - **TypeScript estricto** — no uses `any` sin justificación.
 - La lógica de negocio va en `src/services/`, nunca en controladores.
 - Los datos estáticos van en `src/data/` como JSON.
+- Sanitiza siempre los inputs que se inyecten en HTML (ver `/docs` en `server.ts` como referencia).
 - Mantén los archivos existentes como referencia de estilo.
 
 ---
