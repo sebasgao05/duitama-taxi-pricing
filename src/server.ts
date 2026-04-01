@@ -50,6 +50,12 @@ try {
   <title>Duitama Taxi API - Docs</title>
   <meta charset="utf-8"/>
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    body { background: #1a1a2e; }
+    .swagger-ui { filter: invert(88%) hue-rotate(180deg); }
+    .swagger-ui .highlight-code, .swagger-ui .microlight { filter: invert(100%) hue-rotate(180deg); }
+    .swagger-ui img { filter: invert(100%) hue-rotate(180deg); }
+  </style>
 </head><body>
 <div id="swagger-ui"></div>
 <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
