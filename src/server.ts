@@ -2,9 +2,8 @@ import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
-import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
+import fs from "fs";
 import path from "path";
 import fareRoutes from "./routes/fareRoutes";
 
@@ -12,7 +11,19 @@ const app = express();
 const PORT = process.env.PORT ?? 3000;
 
 // Seguridad — headers HTTP
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        imgSrc: ["'self'", "data:", "https://unpkg.com"],
+        connectSrc: ["'self'"],
+      },
+    },
+  })
+);
 
 // Logging de requests
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
@@ -20,38 +31,38 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 // Parseo JSON con límite de tamaño
 app.use(express.json({ limit: "10kb" }));
 
-// Rate limiting — 60 requests por IP por minuto
-app.use(
-  "/api",
-  rateLimit({
-    windowMs: 60 * 1000,
-    max: 60,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: {
-      success: false,
-      error: {
-        code: "RATE_LIMIT_EXCEEDED",
-        message: "Demasiadas solicitudes. Intente de nuevo en un minuto.",
-      },
-    },
-  })
-);
-
 // Rutas API v2026
 app.use("/api/v2026", fareRoutes);
 
 // Swagger docs
 try {
-  const swaggerDoc = YAML.load(path.join(__dirname, "swagger.yaml"));
-  app.use("/docs", swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {
+  const swaggerYaml = fs.readFileSync(path.join(__dirname, "swagger.yaml"), "utf8");
+  const swaggerDoc = YAML.parse(swaggerYaml);
+  app.get("/docs", (req: Request, res: Response) => {
     const protocol = req.headers["x-forwarded-proto"] ?? req.protocol;
     const host = req.headers["x-forwarded-host"] ?? req.headers.host;
-    const dynamicDoc = {
-      ...swaggerDoc,
-      servers: [{ url: `${protocol}://${host}/api/v2026`, description: process.env.NODE_ENV ?? "local" }],
-    };
-    swaggerUi.setup(dynamicDoc)(req, res, next);
+    const stage = process.env.NODE_ENV !== "local" ? `/${process.env.NODE_ENV}` : "";
+    const serverUrl = `${protocol}://${host}${stage}/api/v2026`;
+    const spec = { ...swaggerDoc, servers: [{ url: serverUrl, description: process.env.NODE_ENV ?? "local" }] };
+    res.setHeader("Content-Type", "text/html");
+    res.send(`<!DOCTYPE html>
+<html><head>
+  <title>Duitama Taxi API - Docs</title>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    body { background: #1a1a2e; }
+    .swagger-ui { filter: invert(88%) hue-rotate(180deg); }
+    .swagger-ui .highlight-code, .swagger-ui .microlight { filter: invert(100%) hue-rotate(180deg); }
+    .swagger-ui img { filter: invert(100%) hue-rotate(180deg); }
+  </style>
+</head><body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+SwaggerUIBundle({ spec: ${JSON.stringify(spec)}, dom_id: "#swagger-ui", presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset] });
+</script>
+</body></html>`);
   });
 } catch {
   app.get("/docs", (_req, res) => res.status(503).json({ error: "Docs no disponibles" }));
