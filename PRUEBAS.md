@@ -20,6 +20,7 @@ Base URL: `http://localhost:3000`
     "destino": "...",
     "hora_consulta": "09:30",
     "fecha_consulta": "2026-03-10",
+    "fuente": "barrios.json → primer_sector",
     "tarifa": 7000,
     "tipo": "diurna",
     "sector_aplicado": "primer sector",
@@ -408,6 +409,7 @@ Aplica del 16 al 31 de diciembre y en Jueves/Viernes Santo. Verificar en `data.r
 ✓ request_id → UUID v4 (xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx)
 ✓ data.hora_consulta → HH:MM
 ✓ data.fecha_consulta → YYYY-MM-DD
+✓ data.fuente → trazabilidad (ej: "barrios.json → primer_sector", "rutas_especiales.json → ruta_1")
 ✓ data.origen y data.destino → coinciden con el input
 ✓ data.detalle incluye "(desde/hacia Terminal)" cuando aplica
 ```

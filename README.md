@@ -101,6 +101,7 @@ curl -X POST http://localhost:3000/api/v2026/calculate-fare \
     "destino": "Centro",
     "hora_consulta": "09:30",
     "fecha_consulta": "2026-03-10",
+    "fuente": "barrios.json → primer_sector",
     "tarifa": 7000,
     "tipo": "diurna",
     "sector_aplicado": "primer sector",
@@ -112,13 +113,19 @@ curl -X POST http://localhost:3000/api/v2026/calculate-fare \
 
 ## Lógica de tarifas
 
-1. Se identifica el sector del origen y del destino
-2. Se aplica el sector **más alto** entre ambos
-3. Se verifica si aplica una **tarifa especial única** (rutas fijas)
+El cálculo sigue un orden de prioridad estricto:
+
+1. **Ruta especial única** — Si origen o destino pertenece a una zona de ruta especial, se aplica tarifa fija (override total)
+2. **Tabla Terminal** — Si origen o destino es Terminal de Transporte o Carrera 42, se usa la tabla terminal para el otro barrio
+3. **Tabla general** — Para todos los demás casos, se toma el sector **más alto** entre origen y destino
 4. Se determina si el horario es **nocturno** (7:00 p.m. – 5:59 a.m.)
 5. Se aplica **recargo especial de $600** en Jueves/Viernes Santo y del 16 al 31 de diciembre (no acumulable)
 
+> El matching de barrios es **exacto** (tras normalizar tildes y mayúsculas). No hay aproximaciones.
+
 ## Sectores y tarifas 2026
+
+### Tabla general
 
 | Sector | Día | Nocturno |
 |--------|-----|----------|
@@ -127,6 +134,18 @@ curl -X POST http://localhost:3000/api/v2026/calculate-fare \
 | Tarifa especial | $8.600 | $9.200 |
 | Tercer sector | $10.200 | $10.900 |
 | Cuarto sector | $12.600 | $13.100 |
+
+### Rutas especiales únicas
+
+| Ruta | Día | Nocturno |
+|------|-----|----------|
+| Ruta 1 — Cogollo / Campohermoso | $15.000 | $15.800 |
+| Ruta 2 — Tribuna Mirador / Seminario Mayor | $16.200 | $16.700 |
+| Ruta 3 — Ciudadela Industrial / Lecheboy | $19.100 | $19.700 |
+| Ruta 4 — Vereda La Trinidad / La Helida | $22.200 | $23.300 |
+| Servicio por horas | $36.100 | $36.100 |
+
+> Algunos barrios tienen sector diferente según si el viaje involucra el Terminal. Ej: `Sauna La Frontera` es tercer sector en tabla general pero cuarto sector desde/hacia el Terminal.
 
 ## CI/CD
 
