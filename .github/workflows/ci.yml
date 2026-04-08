@@ -27,7 +27,7 @@ jobs:
   deploy-qa:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     environment: qa
     steps:
       - uses: actions/checkout@v4
