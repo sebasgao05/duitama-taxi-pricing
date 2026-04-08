@@ -12,6 +12,9 @@ dist/
 # Cobertura de tests
 coverage/
 
+# Claude
+CLAUDE.md
+
 # Logs
 *.log
 npm-debug.log*

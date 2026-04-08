@@ -2,41 +2,56 @@ import barriosData from "../data/barrios.json";
 import barriosTerminalData from "../data/barrios_terminal.json";
 import tarifasData from "../data/tarifas.json";
 import rutasData from "../data/rutas_especiales.json";
-import { Sector, FareRequest, FareResult, RutaEspecial, ZoneInfo, RutaInfo } from "../domain/types";
+import { Sector, FareRequest, FareResult, RutaEspecial, ZoneInfo, RutaInfo, TarifasSector } from "../domain/types";
 import { isNocturno, tieneRecargoEspecial, RECARGO_ESPECIAL, getNowColombia } from "../utils/time";
 
-// Palabras clave que identifican el Terminal de Transporte o Carrera 42
+// ============================================================================
+// CONSTANTES Y CONFIGURACIÓN
+// ============================================================================
+
 const KEYWORDS_TERMINAL = [
   "terminal", "terminal de transporte", "carrera 42", "cra 42", "cra. 42"
 ];
 
-// Índice general (tabla izquierda del decreto)
-const barrioIndex = new Map<string, Sector>();
-// Índice terminal (tabla derecha del decreto — desde/hacia Terminal o Carrera 42)
-const barrioTerminalIndex = new Map<string, Sector>();
-
 type BarriosJson = Record<string, string[]>;
+
+// Índices SEPARADOS: uno para tabla general, otro para tabla terminal
+// Esto evita sobrescrituras y permite trazabilidad completa
+const barrioGeneralIndex = new Map<string, Sector>();
+const barrioTerminalIndex = new Map<string, Sector>();
 
 const sectores = barriosData as unknown as BarriosJson;
 const sectoresTerminal = barriosTerminalData as unknown as BarriosJson;
 
+// Construir índice general
 for (const [sector, barrios] of Object.entries(sectores)) {
   if (sector.startsWith("_")) continue;
   for (const barrio of barrios) {
-    barrioIndex.set(normalizar(barrio), sector as Sector);
+    const key = normalizar(barrio);
+    // Si ya existe dentro del MISMO sector, es duplicado real
+    if (barrioGeneralIndex.has(key)) {
+      console.warn(`[WARN] Barrio duplicado en tabla general: "${barrio}" (sector: ${sector})`);
+    }
+    barrioGeneralIndex.set(key, sector as Sector);
   }
 }
 
+// Construir índice terminal (independiente del general)
 for (const [sector, barrios] of Object.entries(sectoresTerminal)) {
   if (sector.startsWith("_")) continue;
   for (const barrio of barrios) {
-    barrioTerminalIndex.set(normalizar(barrio), sector as Sector);
+    const key = normalizar(barrio);
+    barrioTerminalIndex.set(key, sector as Sector);
   }
 }
 
 const ORDEN_SECTORES = tarifasData.orden_sectores as string[];
-const TARIFAS = tarifasData.sectores as Record<string, { dia: number; nocturno: number }>;
+const TARIFAS = tarifasData.sectores as Record<string, TarifasSector>;
 const RUTAS: RutaEspecial[] = rutasData as RutaEspecial[];
+
+// ============================================================================
+// FUNCIONES UTILITARIAS
+// ============================================================================
 
 function normalizar(texto: string): string {
   return texto
@@ -51,106 +66,239 @@ function esTerminal(lugar: string): boolean {
   return KEYWORDS_TERMINAL.some(k => norm.includes(k));
 }
 
-export function getSector(barrio: string, desdeTerminal = false): Sector {
-  const norm = normalizar(barrio);
-  if (desdeTerminal) return barrioTerminalIndex.get(norm) ?? null;
-  return barrioIndex.get(norm) ?? null;
+export function formatSectorLabel(sector: string): string {
+  return sector.replace(/_/g, " ");
 }
 
+// ============================================================================
+// BÚSQUEDA DE BARRIOS - SIN APROXIMACIONES
+// ============================================================================
+
+/**
+ * Busca un barrio en la tabla GENERAL con matching EXACTO (tras normalizar).
+ * Retorna null si no existe - NO hay aproximaciones ni "valores cercanos".
+ */
+export function getSectorGeneral(barrio: string): Sector {
+  const norm = normalizar(barrio);
+  return barrioGeneralIndex.get(norm) ?? null;
+}
+
+/**
+ * Busca un barrio en la tabla TERMINAL con matching EXACTO (tras normalizar).
+ * Retorna null si no existe - NO hay aproximaciones ni "valores cercanos".
+ */
+export function getSectorTerminal(barrio: string): Sector {
+  const norm = normalizar(barrio);
+  return barrioTerminalIndex.get(norm) ?? null;
+}
+
+/**
+ * Busca un barrio en AMBAS tablas y retorna la primera coincidencia.
+ * Prioridad: terminal → general (si se llama desde contexto terminal)
+ * Retorna null si no existe en ninguna tabla.
+ */
+export function getSector(barrio: string, preferirTerminal = false): { sector: Sector; fuente: "general" | "terminal" } | null {
+  const norm = normalizar(barrio);
+  if (preferirTerminal) {
+    const terminalResult = barrioTerminalIndex.get(norm);
+    if (terminalResult) return { sector: terminalResult, fuente: "terminal" };
+    const generalResult = barrioGeneralIndex.get(norm);
+    if (generalResult) return { sector: generalResult, fuente: "general" };
+    return null;
+  } else {
+    const generalResult = barrioGeneralIndex.get(norm);
+    if (generalResult) return { sector: generalResult, fuente: "general" };
+    const terminalResult = barrioTerminalIndex.get(norm);
+    if (terminalResult) return { sector: terminalResult, fuente: "terminal" };
+    return null;
+  }
+}
+
+/**
+ * Determina el sector más alto entre dos según el orden del decreto.
+ * Prioridad: cuarto_sector > tercer_sector > tarifa_especial > segundo_sector > primer_sector
+ */
 function getSectorMasAlto(s1: Sector, s2: Sector): Sector {
   if (!s1 && !s2) return null;
   if (!s1) return s2;
   if (!s2) return s1;
   const i1 = ORDEN_SECTORES.indexOf(s1);
   const i2 = ORDEN_SECTORES.indexOf(s2);
+  if (i1 === -1 || i2 === -1) {
+    throw new Error(`Sector inválido: ${s1} (${i1}) o ${s2} (${i2})`);
+  }
   return ORDEN_SECTORES[Math.max(i1, i2)] as Sector;
 }
 
-function buscarRutaEspecial(origen: string, destino: string): RutaEspecial | null {
-  const origenNorm = normalizar(origen);
-  const destinoNorm = normalizar(destino);
+/**
+ * Matching EXACTO para zonas de ruta especial.
+ * Un barrio coincide SOLO si:
+ *   - Es idéntico tras normalizar (ej: "cogollo" === "cogollo")
+ *
+ * NO se permite matching por substring para evitar falsos positivos:
+ *   - "Cogollo Alto" NO debe matchear con zona "Cogollo" (son barrios distintos)
+ *   - "San Fernando" NO debe matchear con zona "San" (demasiado genérico)
+ *
+ * Si se requiere que "Cogollo Alto" esté en la ruta, debe estar EXPLÍCITAMENTE en zonas[].
+ */
+function matchZonaExacta(lugar: string, zonasNorm: string[]): boolean {
+  const norm = normalizar(lugar);
+  return zonasNorm.some(z => norm === z);
+}
+
+/**
+ * Busca si origen O destino pertenece a una ruta especial.
+ * Retorna la PRIMERA ruta que coincida (orden de definición en JSON).
+ */
+function buscarRutaEspecial(origen: string, destino: string): { ruta: RutaEspecial; zonaCoincidente: string } | null {
   for (const ruta of RUTAS) {
     const zonasNorm = ruta.zonas.map(normalizar);
-    if (
-      zonasNorm.some(z => origenNorm.includes(z) || z.includes(origenNorm)) &&
-      zonasNorm.some(z => destinoNorm.includes(z) || z.includes(destinoNorm))
-    ) {
-      return ruta;
+    if (matchZonaExacta(origen, zonasNorm)) {
+      return { ruta, zonaCoincidente: origen };
+    }
+    if (matchZonaExacta(destino, zonasNorm)) {
+      return { ruta, zonaCoincidente: destino };
     }
   }
   return null;
 }
 
-export function formatSectorLabel(sector: string): string {
-  return sector.replace(/_/g, " ");
-}
+// ============================================================================
+// CÁLCULO DE TARIFAS - ARQUITECTURA POR PRIORIDAD
+// ============================================================================
 
+/**
+ * Regla de prioridad (ORDEN DE EVALUACIÓN):
+ *
+ * 1. RUTA ESPECIAL ÚNICA → Si origen O destino está en zonas de ruta especial
+ *    - Tarifa FIJA del JSON de rutas
+ *    - NO se compara con sectores
+ *    - NO se combina con nada
+ *
+ * 2. TABLA TERMINAL → Si origen O destino ES terminal/Carrera 42
+ *    - Se usa la tabla terminal para el OTRO barrio
+ *    - El barrio no-terminal debe estar EXPLÍCITAMENTE en la tabla terminal
+ *
+ * 3. TABLA GENERAL → Default para todos los demás casos
+ *    - Se toma el sector MÁS ALTO entre origen y destino
+ *
+ * En NINGÚN caso se hacen aproximaciones o redondeos.
+ */
 export function calcularTarifa(
   req: FareRequest
-): FareResult & { hora_consulta: string; fecha_consulta: string } {
+): FareResult & { hora_consulta: string; fecha_consulta: string; fuente: string } {
   const { hora, fecha } = getNowColombia();
   const nocturno = isNocturno(hora);
   const tipo = nocturno ? "nocturna" : "diurna";
   const recargos: string[] = [];
 
-  // 1. Verificar ruta especial única
-  const rutaEspecial = buscarRutaEspecial(req.origen, req.destino);
-  if (rutaEspecial) {
-    let tarifa = nocturno ? rutaEspecial.tarifa.nocturno : rutaEspecial.tarifa.dia;
+  // ==========================================================================
+  // PRIORIDAD 1: RUTA ESPECIAL ÚNICA (override total)
+  // ==========================================================================
+  const rutaEncontrada = buscarRutaEspecial(req.origen, req.destino);
+
+  if (rutaEncontrada) {
+    const { ruta, zonaCoincidente } = rutaEncontrada;
+    let tarifa = nocturno ? ruta.tarifa.nocturno : ruta.tarifa.dia;
+
+    // Aplicar recargo especial si corresponde (no acumulable)
     if (tieneRecargoEspecial(fecha)) {
       tarifa += RECARGO_ESPECIAL;
       recargos.push(`Recargo especial: +$${RECARGO_ESPECIAL}`);
     }
+
     return {
-      tarifa, tipo,
-      sector_aplicado: "tarifa especial única",
-      detalle: rutaEspecial.nombre,
-      recargos, hora_consulta: hora, fecha_consulta: fecha,
+      tarifa,
+      tipo,
+      sector_aplicado: "ruta especial única",
+      detalle: `${ruta.nombre} (zona: ${zonaCoincidente})`,
+      recargos,
+      hora_consulta: hora,
+      fecha_consulta: fecha,
+      fuente: `rutas_especiales.json → ${ruta.id}`,
     };
   }
 
-  // 2. Detectar si el viaje involucra el Terminal o Carrera 42
+  // ==========================================================================
+  // PRIORIDAD 2: TABLA TERMINAL (condicional)
+  // ==========================================================================
   const origenEsTerminal = esTerminal(req.origen);
   const destinoEsTerminal = esTerminal(req.destino);
   const involucraTerminal = origenEsTerminal || destinoEsTerminal;
 
-  // El barrio "no-terminal" es el que determina el sector en la tabla correspondiente
-  const barrioConsulta = origenEsTerminal ? req.destino : req.origen;
-  const indice = involucraTerminal ? barrioTerminalIndex : barrioIndex;
-  const sectorBarrio = indice.get(normalizar(barrioConsulta)) ?? null;
-
-  // Si no involucra terminal, también buscamos el otro extremo para tomar el más alto
-  let sectorAplicado: Sector;
   if (involucraTerminal) {
-    sectorAplicado = sectorBarrio;
-  } else {
-    const sectorOrigen = barrioIndex.get(normalizar(req.origen)) ?? null;
-    const sectorDestino = barrioIndex.get(normalizar(req.destino)) ?? null;
-    sectorAplicado = getSectorMasAlto(sectorOrigen, sectorDestino);
-  }
+    const barrioNoTerminal = origenEsTerminal ? req.destino : req.origen;
+    const sectorEnTablaTerminal = getSectorTerminal(barrioNoTerminal);
 
-  if (!sectorAplicado) {
-    throw new Error(
-      `No se encontró sector para "${req.origen}" ni para "${req.destino}". Verifique los nombres.`
+    // Verificar que el barrio esté EXPLÍCITAMENTE en la tabla terminal
+    if (sectorEnTablaTerminal) {
+      const tarifaBase = nocturno ? TARIFAS[sectorEnTablaTerminal].nocturno : TARIFAS[sectorEnTablaTerminal].dia;
+      let tarifa = tarifaBase;
+
+      if (tieneRecargoEspecial(fecha)) {
+        tarifa += RECARGO_ESPECIAL;
+        recargos.push(`Recargo especial: +$${RECARGO_ESPECIAL}`);
+      }
+
+      return {
+        tarifa,
+        tipo,
+        sector_aplicado: formatSectorLabel(sectorEnTablaTerminal),
+        detalle: `Tarifa base ${formatSectorLabel(sectorEnTablaTerminal)} ${tipo} (desde/hacia Terminal)`,
+        recargos,
+        hora_consulta: hora,
+        fecha_consulta: fecha,
+        fuente: `barrios_terminal.json → ${sectorEnTablaTerminal}`,
+      };
+    }
+
+    // Si el barrio no está en tabla terminal, caer a general con advertencia
+    console.warn(
+      `[WARN] "${barrioNoTerminal}" involucra Terminal pero NO está en barrios_terminal.json. ` +
+      `Usando tabla general (posible tarifa incorrecta).`
     );
   }
 
-  const tarifaBase = TARIFAS[sectorAplicado];
-  let tarifa = nocturno ? tarifaBase.nocturno : tarifaBase.dia;
+  // ==========================================================================
+  // PRIORIDAD 3: TABLA GENERAL (default)
+  // ==========================================================================
+  const sectorOrigen = getSectorGeneral(req.origen);
+  const sectorDestino = getSectorGeneral(req.destino);
 
-  // 3. Recargo especial (no acumulable)
+  // Validar que al menos uno exista
+  if (!sectorOrigen && !sectorDestino) {
+    throw new Error(
+      `No se encontró sector para "${req.origen}" ni para "${req.destino}". ` +
+      `Verifique los nombres en barrios.json.`
+    );
+  }
+
+  // Tomar el sector más alto entre origen y destino
+  const sectorAplicado = getSectorMasAlto(sectorOrigen, sectorDestino);
+
+  if (!sectorAplicado) {
+    throw new Error(
+      `Uno de los barrios no tiene sector asignado: "${req.origen}" o "${req.destino}"`
+    );
+  }
+
+  const tarifaBase = nocturno ? TARIFAS[sectorAplicado].nocturno : TARIFAS[sectorAplicado].dia;
+  let tarifa = tarifaBase;
+
   if (tieneRecargoEspecial(fecha)) {
     tarifa += RECARGO_ESPECIAL;
     recargos.push(`Recargo especial: +$${RECARGO_ESPECIAL}`);
   }
 
-  const contexto = involucraTerminal ? " (desde/hacia Terminal)" : "";
-
   return {
-    tarifa, tipo,
+    tarifa,
+    tipo,
     sector_aplicado: formatSectorLabel(sectorAplicado),
-    detalle: `Tarifa base ${formatSectorLabel(sectorAplicado)} ${tipo}${contexto}`,
-    recargos, hora_consulta: hora, fecha_consulta: fecha,
+    detalle: `Tarifa base ${formatSectorLabel(sectorAplicado)} ${tipo}`,
+    recargos,
+    hora_consulta: hora,
+    fecha_consulta: fecha,
+    fuente: `barrios.json → ${sectorAplicado}`,
   };
 }
 

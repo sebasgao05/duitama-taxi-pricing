@@ -25,7 +25,7 @@ export function calculateFare(req: Request, res: Response): void {
   }
 
   try {
-    const { hora_consulta, fecha_consulta, ...result } = calcularTarifa(parsed.data);
+    const { hora_consulta, fecha_consulta, fuente, ...result } = calcularTarifa(parsed.data);
     res.json({
       success: true,
       timestamp,
@@ -35,6 +35,7 @@ export function calculateFare(req: Request, res: Response): void {
         destino: parsed.data.destino,
         hora_consulta,
         fecha_consulta,
+        fuente, // Trazabilidad: de qué tabla/file salió el valor
         ...result,
       },
     });
@@ -78,8 +79,8 @@ export function getSectorHandler(req: Request, res: Response): void {
     return;
   }
 
-  const sector = getSector(barrio);
-  if (!sector) {
+  const result = getSector(barrio);
+  if (!result || !result.sector) {
     res.status(404).json({
       success: false,
       timestamp,
@@ -92,6 +93,6 @@ export function getSectorHandler(req: Request, res: Response): void {
   res.json({
     success: true,
     timestamp,
-    data: { barrio, sector: formatSectorLabel(sector) },
+    data: { barrio, sector: formatSectorLabel(result.sector), fuente: result.fuente },
   });
 }

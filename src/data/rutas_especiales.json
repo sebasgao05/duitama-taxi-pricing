@@ -3,7 +3,7 @@
     "id": "ruta_1",
     "nombre": "Ruta del Mundial / Cogollo / Campohermoso",
     "descripcion": "Ruta del Mundial (Divino Niño), Cogollo, Campohermoso (Placa Huella), Confaboy Campestre (si se toma desde o hacia el terminal de transporte)",
-    "zonas": ["Divino Niño", "Cogollo", "Campohermoso", "Placa Huella", "Confaboy Campestre", "Terminal de Transporte"],
+    "zonas": ["Divino Niño", "Cogollo", "Campohermoso", "Placa Huella", "Confaboy Campestre"],
     "tarifa": { "dia": 15000, "nocturno": 15800 }
   },
   {

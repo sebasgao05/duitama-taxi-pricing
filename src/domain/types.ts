@@ -29,6 +29,7 @@ export interface FareResponse {
     destino: string;
     hora_consulta: string; // HH:MM hora local Colombia
     fecha_consulta: string;// YYYY-MM-DD fecha local Colombia
+    fuente: string;        // Trazabilidad: origen del valor (ej: "rutas_especiales.json → ruta_1")
   };
 }
 
