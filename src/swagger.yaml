@@ -38,6 +38,7 @@ paths:
                   destino: "Cogollo Alto"
                   hora_consulta: "09:30"
                   fecha_consulta: "2026-03-10"
+                  fuente: "barrios.json → cuarto_sector"
                   tarifa: 12600
                   tipo: "diurna"
                   sector_aplicado: "cuarto sector"
@@ -222,6 +223,10 @@ components:
               format: date
               description: Fecha en Colombia al momento de la consulta
               example: "2026-04-15"
+            fuente:
+              type: string
+              description: "Trazabilidad: tabla/archivo origen del valor (ej: barrios.json → primer_sector)"
+              example: "barrios.json → primer_sector"
             tarifa:
               type: number
               example: 12600

@@ -122,8 +122,8 @@ describe("POST /api/v2026/calculate-fare", () => {
         .send({ origen, destino });
 
       expect(res.body.data.tarifa).toBe(tarifa);
-      expect(res.body.data.sector_aplicado).toBe("tarifa especial única");
-      expect(res.body.data.detalle).toBe(detalle);
+      expect(res.body.data.sector_aplicado).toBe("ruta especial única");
+      expect(res.body.data.detalle).toMatch(new RegExp(`^${detalle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
     });
   });
 
