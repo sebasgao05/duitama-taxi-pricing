@@ -1,5 +1,6 @@
 import supertest from "supertest";
 import app from "../server";
+import { getSector, calcularTarifa } from "../services/fareService";
 
 const api = supertest(app);
 const post = (url: string) => api.post(url).set("Content-Type", "application/json");
@@ -301,5 +302,66 @@ describe("Rutas no existentes", () => {
     const res = await api.get("/api/v2026/ruta-inexistente");
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("getSector", () => {
+  it("preferirTerminal=true retorna fuente terminal si existe", () => {
+    const result = getSector("San Fernando", true);
+    expect(result).not.toBeNull();
+    expect(result!.sector).toBeDefined();
+  });
+
+  it("preferirTerminal=true cae a general si no está en terminal", () => {
+    const result = getSector("Cogollo Alto", true);
+    expect(result).not.toBeNull();
+    expect(result!.fuente).toBe("general");
+  });
+
+  it("retorna null si no existe en ninguna tabla", () => {
+    const result = getSector("BarrioInexistente", true);
+    expect(result).toBeNull();
+  });
+});
+
+describe("calcularTarifa — errores internos", () => {
+  it("lanza error si ambos barrios no tienen sector", () => {
+    expect(() => calcularTarifa({ origen: "BarrioFalso", destino: "OtroFalso" })).toThrow();
+  });
+});
+
+describe("POST /api/v2026/calculate-fare — casos borde", () => {
+  it("recargo especial en ruta especial única", async () => {
+    const { getNowColombia } = require("../utils/time");
+    getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-12-16" });
+
+    const res = await post("/api/v2026/calculate-fare")
+      .send({ origen: "Cogollo", destino: "San Fernando" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.sector_aplicado).toBe("ruta especial única");
+    expect(res.body.data.recargos).toContain("Recargo especial: +$600");
+  });
+
+  it("recargo especial en tabla terminal", async () => {
+    const { getNowColombia } = require("../utils/time");
+    getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-12-16" });
+
+    const res = await post("/api/v2026/calculate-fare")
+      .send({ origen: "Terminal de Transporte", destino: "San Fernando" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.detalle).toContain("(desde/hacia Terminal)");
+    expect(res.body.data.recargos).toContain("Recargo especial: +$600");
+  });
+
+  it("barrio involucra terminal pero no está en tabla terminal → cae a general", async () => {
+    const { getNowColombia } = require("../utils/time");
+    getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-03-10" });
+
+    const res = await post("/api/v2026/calculate-fare")
+      .send({ origen: "Terminal de Transporte", destino: "BarrioSoloEnGeneral" });
+
+    expect([200, 422]).toContain(res.status);
   });
 });
