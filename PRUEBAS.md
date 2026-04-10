@@ -52,7 +52,7 @@ Base URL: `http://localhost:3000`
 GET /health
 ```
 ```json
-{ "status": "ok", "decreto": "033-2026", "version": "1.0.0" }
+{ "status": "ok", "decreto": "033-2026", "version": "1.1.0" }
 ```
 
 ---
