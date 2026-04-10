@@ -1,4 +1,4 @@
-import { isNocturno, tieneRecargoEspecial } from "../utils/time";
+import { isNocturno, tieneRecargoEspecial, getNowColombia } from "../utils/time";
 
 describe("isNocturno", () => {
   it.each([
@@ -34,5 +34,13 @@ describe("tieneRecargoEspecial", () => {
 
   it("no aplica en un día normal", () => {
     expect(tieneRecargoEspecial("2026-03-10")).toBe(false);
+  });
+});
+
+describe("getNowColombia", () => {
+  it("retorna hora y fecha en formato correcto", () => {
+    const { hora, fecha } = getNowColombia();
+    expect(hora).toMatch(/^\d{2}:\d{2}$/);
+    expect(fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
