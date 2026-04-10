@@ -6,7 +6,7 @@
 [![Open Issues](https://img.shields.io/github/issues/sebasgao05/duitama-taxi-pricing?logo=github)](https://github.com/sebasgao05/duitama-taxi-pricing/issues)
 [![Open PRs](https://img.shields.io/github/issues-pr/sebasgao05/duitama-taxi-pricing?logo=github&label=pull%20requests)](https://github.com/sebasgao05/duitama-taxi-pricing/pulls)
 
-[![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Express](https://img.shields.io/badge/Express-5.2-000000?logo=express&logoColor=white)](https://expressjs.com)
 [![Zod](https://img.shields.io/badge/Zod-4.3-3E67B1?logo=zod&logoColor=white)](https://zod.dev)
