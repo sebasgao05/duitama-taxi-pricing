@@ -76,7 +76,6 @@ npm run dev
 | `GET` | `/api/v2026/zones` | Sectores con colores para mapa | ✅ |
 | `GET` | `/api/v2026/sector?barrio=...` | Consultar sector de un barrio | ✅ |
 | `GET` | `/api/v2026/barrios` | Barrios agrupados por sector (general + terminal) | ✅ |
-| `GET` | `/docs` | Documentación Swagger (modo oscuro/claro) | — |
 | `GET` | `/api/v2026/rutas-especiales` | Rutas con tarifa fija | ✅ |
 | `GET` | `/docs` | Documentación Swagger | — |
 | `GET` | `/health` | Health check | ❌ |
@@ -159,6 +158,13 @@ El pipeline usa **GitHub Actions + AWS SAM**:
 **Secrets requeridos en GitHub:**
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
+
+## Documentación externa
+
+| Plataforma | Enlace | Descripción |
+|------------|--------|-------------|
+| Mintlify | [mintlify.wiki/sebasgao05/duitama-taxi-pricing](https://mintlify.wiki/sebasgao05/duitama-taxi-pricing/) | Documentación de referencia de la API |
+| DeepWiki | [deepwiki.com/sebasgao05/duitama-taxi-pricing](https://deepwiki.com/sebasgao05/duitama-taxi-pricing) | Documentación técnica del repositorio |
 
 ## Contribuir
 
