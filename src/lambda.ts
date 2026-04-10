@@ -1,9 +1,8 @@
-import { configure } from "@vendia/serverless-express";
+import serverlessExpress from "@codegenie/serverless-express";
 import app from "./server";
 
-const serverlessHandler = configure({
+const serverlessHandler = serverlessExpress({
   app,
-  binarySettings: { isBinary: () => false },
   resolutionMode: "PROMISE",
 }) as unknown as (event: any, context: any) => Promise<any>;
 
