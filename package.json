@@ -1,6 +1,6 @@
 {
   "name": "@sebasgao05/duitama-taxi-pricing",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "API de tarifas de taxi Duitama 2026 - Decreto 033",
   "license": "MIT",
   "main": "dist/server.js",
