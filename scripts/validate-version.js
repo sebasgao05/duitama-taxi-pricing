@@ -2,27 +2,41 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-const packageJson = JSON.parse(read("package.json"));
-const versionSource = read("src/version.ts");
-const swagger = read("src/swagger.yaml");
+function validateVersion(projectRoot = root) {
+  const read = (file) => fs.readFileSync(path.join(projectRoot, file), "utf8");
 
-const appVersion = versionSource.match(/API_VERSION\s*=\s*"([^"]+)"/)?.[1];
-const swaggerVersion = swagger.match(/^\s*version:\s*"([^"]+)"/m)?.[1];
+  const packageJson = JSON.parse(read("package.json"));
+  const packageLock = JSON.parse(read("package-lock.json"));
+  const versionSource = read("src/version.ts");
+  const swagger = read("src/swagger.yaml");
 
-const expected = packageJson.version;
-const mismatches = [
-  ["src/version.ts", appVersion],
-  ["src/swagger.yaml", swaggerVersion],
-].filter(([, value]) => value !== expected);
+  const appVersion = versionSource.match(/API_VERSION\s*=\s*"([^"]+)"/)?.[1];
+  const swaggerVersion = swagger.match(/^\s*version:\s*"([^"]+)"/m)?.[1];
 
-if (mismatches.length > 0) {
-  console.error(`Version mismatch. package.json is ${expected}.`);
-  for (const [file, value] of mismatches) {
-    console.error(`- ${file}: ${value || "not found"}`);
-  }
-  process.exit(1);
+  const expected = packageJson.version;
+  const mismatches = [
+    ["package-lock.json", packageLock.version],
+    ['package-lock.json packages[""]', packageLock.packages?.[""]?.version],
+    ["src/version.ts", appVersion],
+    ["src/swagger.yaml", swaggerVersion],
+  ].filter(([, value]) => value !== expected);
+
+  return { expected, mismatches };
 }
 
-console.log(`Version metadata is consistent: ${expected}`);
+if (require.main === module) {
+  const { expected, mismatches } = validateVersion();
+
+  if (mismatches.length > 0) {
+    console.error(`Version mismatch. package.json is ${expected}.`);
+    for (const [file, value] of mismatches) {
+      console.error(`- ${file}: ${value || "not found"}`);
+    }
+    process.exit(1);
+  }
+
+  console.log(`Version metadata is consistent: ${expected}`);
+}
+
+module.exports = { validateVersion };

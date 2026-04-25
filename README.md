@@ -165,7 +165,9 @@ La API publica releases con tags `vX.Y.Z` segun la version declarada en `package
 
 - Las versiones estables, por ejemplo `1.1.2`, crean un GitHub Release despues del deploy a production.
 - Las versiones `-rc.N`, por ejemplo `1.2.0-rc.1`, crean un GitHub Pre-release despues del deploy a staging y no pasan a production.
-- La version publica de `/health`, Swagger y `package.json` debe coincidir; CI valida esta consistencia con `npm run validate:version`.
+- Para subir version usa `npm run version:patch`, `npm run version:minor`, `npm run version:major` o `npm run version:rc`.
+- Estos comandos sincronizan `package.json`, `package-lock.json`, `src/version.ts` y `src/swagger.yaml`.
+- La version publica de `/health`, Swagger, `package.json` y `package-lock.json` debe coincidir; CI valida esta consistencia con `npm run validate:version`.
 
 ## Documentación externa
 

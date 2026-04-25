@@ -48,6 +48,13 @@ for (const [sector, barrios] of Object.entries(sectoresTerminal)) {
 const ORDEN_SECTORES = tarifasData.orden_sectores as string[];
 const TARIFAS = tarifasData.sectores as Record<string, TarifasSector>;
 const RUTAS: RutaEspecial[] = rutasData as RutaEspecial[];
+const COLORES_ZONAS: Record<string, string> = {
+  primer_sector: "#4CAF50",
+  segundo_sector: "#2196F3",
+  tarifa_especial: "#FF9800",
+  tercer_sector: "#9C27B0",
+  cuarto_sector: "#F44336",
+};
 
 // ============================================================================
 // FUNCIONES UTILITARIAS
@@ -314,22 +321,27 @@ export function getRutas(): RutaInfo[] {
 }
 
 export function getZones(): ZoneInfo[] {
-  const colores: Record<string, string> = {
-    primer_sector: "#4CAF50",
-    segundo_sector: "#2196F3",
-    tarifa_especial: "#FF9800",
-    tercer_sector: "#9C27B0",
-    cuarto_sector: "#F44336",
-  };
   return Object.entries(sectores)
     .filter(([k]) => !k.startsWith("_"))
-    .map(([sector, barrios]) => ({
-      sector: formatSectorLabel(sector),
-      color: colores[sector],
-      tarifa_dia: TARIFAS[sector].dia,
-      tarifa_nocturna: TARIFAS[sector].nocturno,
-      barrios,
-    }));
+    .map(([sector, barrios]) => {
+      const color = COLORES_ZONAS[sector];
+      if (!color) {
+        throw new Error(`Sector sin color configurado: ${sector}`);
+      }
+
+      const tarifa = TARIFAS[sector];
+      if (!tarifa) {
+        throw new Error(`Sector sin tarifa configurada: ${sector}`);
+      }
+
+      return {
+        sector: formatSectorLabel(sector),
+        color,
+        tarifa_dia: tarifa.dia,
+        tarifa_nocturna: tarifa.nocturno,
+        barrios,
+      };
+    });
 }
 
 export function getBarrios(): object {

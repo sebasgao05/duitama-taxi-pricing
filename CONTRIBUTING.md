@@ -185,8 +185,9 @@ Este proyecto es una API publica y usa versionado SemVer (`MAJOR.MINOR.PATCH`).
 - Los PRs de Dependabot deben subir `PATCH`, salvo que un maintainer determine que el cambio afecta la API publica.
 - Todo cambio `MAJOR` requiere validacion explicita de un maintainer antes del merge.
 - Los cambios grandes se validan como pre-release con formato `X.Y.Z-rc.N`, por ejemplo `1.2.0-rc.1`.
-- La version debe actualizarse en `package.json`, `package-lock.json`, `src/version.ts` y `src/swagger.yaml`.
-- CI ejecuta `npm run validate:version` para verificar que la version publica de la API y Swagger coincide con `package.json`.
+- Actualiza la version con `npm run version:patch`, `npm run version:minor`, `npm run version:major` o `npm run version:rc`.
+- Estos comandos sincronizan `package.json`, `package-lock.json`, `src/version.ts` y `src/swagger.yaml`.
+- CI ejecuta `npm run validate:version` para verificar que la version publica de la API, Swagger y lockfile coincide con `package.json`.
 - En `main`, una version estable crea un GitHub Release `vX.Y.Z` despues de production; una version `-rc.N` crea un GitHub Pre-release despues de staging y no despliega production.
 
 ---
