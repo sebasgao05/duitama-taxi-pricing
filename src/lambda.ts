@@ -3,7 +3,6 @@ import app from "./server";
 
 const serverlessHandler = serverlessExpress({
   app,
-  resolutionMode: "PROMISE",
 }) as unknown as (event: any, context: any) => Promise<any>;
 
 export const handler = async (event: any, context: any) => {
