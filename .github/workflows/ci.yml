@@ -27,7 +27,6 @@ jobs:
           fi
 
   test:
-    needs: release-metadata
     runs-on: ubuntu-latest
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

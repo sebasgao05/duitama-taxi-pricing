@@ -325,9 +325,9 @@ export function getZones(): ZoneInfo[] {
     .filter(([k]) => !k.startsWith("_"))
     .map(([sector, barrios]) => ({
       sector: formatSectorLabel(sector),
-      color: colores[sector],
-      tarifa_dia: TARIFAS[sector].dia,
-      tarifa_nocturna: TARIFAS[sector].nocturno,
+      color: colores[sector] ?? /* istanbul ignore next */ "#607D8B",
+      tarifa_dia: TARIFAS[sector]?.dia,
+      tarifa_nocturna: TARIFAS[sector]?.nocturno,
       barrios,
     }));
 }

@@ -5,16 +5,18 @@ const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 const packageJson = JSON.parse(read("package.json"));
+const packageLockJson = JSON.parse(read("package-lock.json"));
 const versionSource = read("src/version.ts");
 const swagger = read("src/swagger.yaml");
 
 const appVersion = versionSource.match(/API_VERSION\s*=\s*"([^"]+)"/)?.[1];
-const swaggerVersion = swagger.match(/^\s*version:\s*"([^"]+)"/m)?.[1];
+const swaggerVersion = swagger.match(/^\s*version:\s*["']?([^"'\s]+)["']?/m)?.[1];
 
 const expected = packageJson.version;
 const mismatches = [
   ["src/version.ts", appVersion],
   ["src/swagger.yaml", swaggerVersion],
+  ["package-lock.json", packageLockJson.version],
 ].filter(([, value]) => value !== expected);
 
 if (mismatches.length > 0) {
