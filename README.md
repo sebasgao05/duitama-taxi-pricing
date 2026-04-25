@@ -159,6 +159,14 @@ El pipeline usa **GitHub Actions + AWS SAM**:
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
+## Releases
+
+La API publica releases con tags `vX.Y.Z` segun la version declarada en `package.json`.
+
+- Las versiones estables, por ejemplo `1.1.2`, crean un GitHub Release despues del deploy a production.
+- Las versiones `-rc.N`, por ejemplo `1.2.0-rc.1`, crean un GitHub Pre-release despues del deploy a staging y no pasan a production.
+- La version publica de `/health`, Swagger y `package.json` debe coincidir; CI valida esta consistencia con `npm run validate:version`.
+
 ## Documentación externa
 
 | Plataforma | Enlace | Descripción |

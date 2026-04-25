@@ -2,7 +2,7 @@ openapi: "3.0.0"
 info:
   title: Duitama Taxi Pricing API
   description: API de tarifas de taxi Duitama 2026 - Decreto 033 del 16 de enero de 2026
-  version: "1.1.0"
+  version: "1.1.2"
 servers:
   - url: http://localhost:3000/api/v2026
     description: Local

@@ -15,6 +15,7 @@
 7. [Tests](#7-tests)
 8. [Abrir un Pull Request](#8-abrir-un-pull-request)
 9. [Proceso de revisión](#9-proceso-de-revisión)
+10. [Versionado y releases](#10-versionado-y-releases)
 
 ---
 
@@ -167,6 +168,26 @@ Al abrir el PR, la plantilla te pedirá:
 2. Puede pedir cambios — responde en el mismo PR, no abras uno nuevo.
 3. Una vez aprobado, el mantenedor hace el merge a `main`.
 4. Los PRs sin actividad por **30 días** serán cerrados.
+
+---
+
+## 10. Versionado y releases
+
+Este proyecto es una API publica y usa versionado SemVer (`MAJOR.MINOR.PATCH`).
+
+| Cambio | Incremento | Ejemplo |
+|--------|------------|---------|
+| Dependabot o dependencia compatible | `PATCH` | `1.1.1` -> `1.1.2` |
+| Fix compatible | `PATCH` | `1.1.2` -> `1.1.3` |
+| Endpoint o capacidad compatible | `MINOR` | `1.1.2` -> `1.2.0` |
+| Cambio incompatible de API publica | `MAJOR` | `1.x.x` -> `2.0.0` |
+
+- Los PRs de Dependabot deben subir `PATCH`, salvo que un maintainer determine que el cambio afecta la API publica.
+- Todo cambio `MAJOR` requiere validacion explicita de un maintainer antes del merge.
+- Los cambios grandes se validan como pre-release con formato `X.Y.Z-rc.N`, por ejemplo `1.2.0-rc.1`.
+- La version debe actualizarse en `package.json`, `package-lock.json`, `src/version.ts` y `src/swagger.yaml`.
+- CI ejecuta `npm run validate:version` para verificar que la version publica de la API y Swagger coincide con `package.json`.
+- En `main`, una version estable crea un GitHub Release `vX.Y.Z` despues de production; una version `-rc.N` crea un GitHub Pre-release despues de staging y no despliega production.
 
 ---
 

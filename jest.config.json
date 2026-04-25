@@ -4,5 +4,13 @@
   "roots": ["<rootDir>/src"],
   "testMatch": ["**/__tests__/**/*.test.ts"],
   "collectCoverageFrom": ["src/services/**/*.ts", "src/utils/**/*.ts"],
-  "coverageReporters": ["lcov", "text"]
+  "coverageReporters": ["lcov", "text"],
+  "coverageThreshold": {
+    "global": {
+      "branches": 100,
+      "functions": 100,
+      "lines": 100,
+      "statements": 100
+    }
+  }
 }

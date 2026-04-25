@@ -1,6 +1,13 @@
 import supertest from "supertest";
 import app from "../server";
-import { getSector, calcularTarifa } from "../services/fareService";
+import {
+  calcularTarifa,
+  formatSectorLabel,
+  getSector,
+  getSectorGeneral,
+  getSectorTerminal,
+} from "../services/fareService";
+import { API_VERSION } from "../version";
 
 const api = supertest(app);
 const post = (url: string) => api.post(url).set("Content-Type", "application/json");
@@ -126,9 +133,26 @@ describe("POST /api/v2026/calculate-fare", () => {
       expect(res.body.data.sector_aplicado).toBe("ruta especial única");
       expect(res.body.data.detalle).toMatch(new RegExp(`^${detalle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
     });
+
+    it("aplica tarifa nocturna en ruta especial única", async () => {
+      const { getNowColombia } = require("../utils/time");
+      getNowColombia.mockReturnValue({ hora: "21:00", fecha: "2026-03-10" });
+
+      const res = await post("/api/v2026/calculate-fare")
+        .send({ origen: "Terminal de Transporte", destino: "Cogollo" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.tarifa).toBe(15800);
+      expect(res.body.data.tipo).toBe("nocturna");
+    });
   });
 
   describe("Tolerancia a tildes y mayúsculas", () => {
+    beforeEach(() => {
+      const { getNowColombia } = require("../utils/time");
+      getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-03-10" });
+    });
+
     it("acepta nombres en minúsculas sin tildes", async () => {
       const res = await post("/api/v2026/calculate-fare")
         .send({ origen: "san fernando", destino: "santander" });
@@ -286,6 +310,18 @@ describe("POST /api/v2026/calculate-fare — Tarifas desde/hacia Terminal", () =
     expect(terminal.body.data.tarifa).toBe(12600);
     expect(terminal.body.data.sector_aplicado).toBe("cuarto sector");
   });
+
+  it("aplica tarifa nocturna desde/hacia Terminal", async () => {
+    const { getNowColombia } = require("../utils/time");
+    getNowColombia.mockReturnValue({ hora: "21:00", fecha: "2026-03-10" });
+
+    const res = await post("/api/v2026/calculate-fare")
+      .send({ origen: "Terminal de Transporte", destino: "San Fernando" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.tarifa).toBe(7500);
+    expect(res.body.data.tipo).toBe("nocturna");
+  });
 });
 
 describe("GET /health", () => {
@@ -293,7 +329,7 @@ describe("GET /health", () => {
     const res = await api.get("/health");
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("ok");
-    expect(res.body.version).toBe("1.0.0");
+    expect(res.body.version).toBe(API_VERSION);
   });
 });
 
@@ -306,6 +342,16 @@ describe("Rutas no existentes", () => {
 });
 
 describe("getSector", () => {
+  it("retorna sector desde tabla general por defecto", () => {
+    const result = getSector("San Fernando");
+    expect(result).toEqual({ sector: "primer_sector", fuente: "general" });
+  });
+
+  it("sin preferencia terminal cae a terminal si no existe en general", () => {
+    const result = getSector("Col Francisco de Paula Santander");
+    expect(result).toEqual({ sector: "primer_sector", fuente: "terminal" });
+  });
+
   it("preferirTerminal=true retorna fuente terminal si existe", () => {
     const result = getSector("San Fernando", true);
     expect(result).not.toBeNull();
@@ -322,11 +368,37 @@ describe("getSector", () => {
     const result = getSector("BarrioInexistente", true);
     expect(result).toBeNull();
   });
+
+  it("getSectorGeneral y getSectorTerminal retornan null si no hay coincidencia exacta", () => {
+    expect(getSectorGeneral("BarrioInexistente")).toBeNull();
+    expect(getSectorTerminal("BarrioInexistente")).toBeNull();
+  });
+
+  it("formatSectorLabel reemplaza guiones bajos por espacios", () => {
+    expect(formatSectorLabel("tarifa_especial")).toBe("tarifa especial");
+  });
 });
 
 describe("calcularTarifa — errores internos", () => {
+  beforeEach(() => {
+    const { getNowColombia } = require("../utils/time");
+    getNowColombia.mockReturnValue({ hora: "10:00", fecha: "2026-03-10" });
+  });
+
   it("lanza error si ambos barrios no tienen sector", () => {
     expect(() => calcularTarifa({ origen: "BarrioFalso", destino: "OtroFalso" })).toThrow();
+  });
+
+  it("usa el sector de destino si origen no existe en tabla general", () => {
+    const result = calcularTarifa({ origen: "BarrioFalso", destino: "San Fernando" });
+    expect(result.sector_aplicado).toBe("primer sector");
+    expect(result.tarifa).toBe(7000);
+  });
+
+  it("usa el sector de origen si destino no existe en tabla general", () => {
+    const result = calcularTarifa({ origen: "San Fernando", destino: "BarrioFalso" });
+    expect(result.sector_aplicado).toBe("primer sector");
+    expect(result.tarifa).toBe(7000);
   });
 });
 

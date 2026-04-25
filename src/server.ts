@@ -6,6 +6,7 @@ import YAML from "yamljs";
 import fs from "fs";
 import path from "path";
 import fareRoutes from "./routes/fareRoutes";
+import { API_VERSION } from "./version";
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -356,7 +357,7 @@ app.get("/health", (_req, res) =>
   res.json({
     status: "ok",
     decreto: "033-2026",
-    version: "1.0.0",
+    version: API_VERSION,
     timestamp: new Date().toISOString(),
   })
 );
