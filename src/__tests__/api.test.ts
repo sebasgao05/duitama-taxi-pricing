@@ -1,6 +1,7 @@
 import supertest from "supertest";
 import app from "../server";
 import { getSector, calcularTarifa } from "../services/fareService";
+import { API_VERSION } from "../version";
 
 const api = supertest(app);
 const post = (url: string) => api.post(url).set("Content-Type", "application/json");
@@ -293,7 +294,7 @@ describe("GET /health", () => {
     const res = await api.get("/health");
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("ok");
-    expect(res.body.version).toBe("1.0.0");
+    expect(res.body.version).toBe(API_VERSION);
   });
 });
 

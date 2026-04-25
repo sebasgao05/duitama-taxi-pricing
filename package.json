@@ -1,6 +1,6 @@
 {
   "name": "@sebasgao05/duitama-taxi-pricing",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "API de tarifas de taxi Duitama 2026 - Decreto 033",
   "license": "MIT",
   "main": "dist/server.js",
@@ -10,6 +10,7 @@
     "build:lambda": "tsc && node -e \"require('fs').copyFileSync('src/swagger.yaml','dist/swagger.yaml')\"",
     "start": "node dist/server.js",
     "test": "jest --config jest.config.json",
+    "validate:version": "node scripts/validate-version.js",
     "test:coverage": "jest --config jest.config.json --coverage"
   },
   "dependencies": {

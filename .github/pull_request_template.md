@@ -18,6 +18,8 @@ Closes #<!-- número de issue -->
 - [ ] Agregué o actualicé tests si cambié lógica de tarifas
 - [ ] El código sigue el estilo del proyecto (TypeScript estricto)
 - [ ] Actualicé la documentación si fue necesario
+- [ ] Actualicé la versión si el cambio lo requiere
+- [ ] Validé impacto SemVer si afecta la API pública
 
 ## Ejemplos / evidencia
 
