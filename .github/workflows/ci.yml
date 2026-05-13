@@ -50,14 +50,19 @@ jobs:
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run validate:version
-      - run: npm run build:lambda
-      - run: npm run test:coverage
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run validate:version
+      - run: pnpm run build:lambda
+      - run: pnpm run test:coverage
       - name: Upload coverage
         if: env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v5
@@ -84,12 +89,17 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build:lambda
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -128,20 +138,25 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
       - name: Bump patch version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm run version:patch
-          git add package.json package-lock.json
-          # Incluir src/version.ts si existe (sync-version.js lo actualiza)
-          git diff --cached --name-only | grep -q "src/version.ts" || true
+          pnpm run version:patch
+          git add package.json
           git add src/version.ts 2>/dev/null || true
+          git add src/swagger.yaml 2>/dev/null || true
           NEW_VERSION=$(node -p "require('./package.json').version")
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git push origin main
@@ -153,12 +168,18 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build:lambda
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -177,12 +198,18 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build:lambda
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

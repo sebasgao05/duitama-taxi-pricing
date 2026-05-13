@@ -4,25 +4,14 @@ import path from "path";
 
 const { validateVersion } = require("../../scripts/validate-version");
 
-function writeFixture(root: string, packageLockVersion = "1.1.2", rootPackageVersion = "1.1.2"): void {
+function writeFixture(root: string, versionTs = "1.1.2", swaggerVersion = "1.1.2"): void {
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.writeFileSync(
     path.join(root, "package.json"),
     JSON.stringify({ version: "1.1.2" })
   );
-  fs.writeFileSync(
-    path.join(root, "package-lock.json"),
-    JSON.stringify({
-      version: packageLockVersion,
-      packages: {
-        "": {
-          version: rootPackageVersion,
-        },
-      },
-    })
-  );
-  fs.writeFileSync(path.join(root, "src", "version.ts"), 'export const API_VERSION = "1.1.2";');
-  fs.writeFileSync(path.join(root, "src", "swagger.yaml"), 'info:\n  version: "1.1.2"\n');
+  fs.writeFileSync(path.join(root, "src", "version.ts"), `export const API_VERSION = "${versionTs}";`);
+  fs.writeFileSync(path.join(root, "src", "swagger.yaml"), `info:\n  version: "${swaggerVersion}"\n`);
 }
 
 describe("validate-version.js", () => {
@@ -36,7 +25,7 @@ describe("validate-version.js", () => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
-  it("valida package-lock.json contra package.json", () => {
+  it("pasa cuando todas las versiones coinciden", () => {
     writeFixture(tempRoot);
 
     expect(validateVersion(tempRoot)).toEqual({
@@ -45,21 +34,32 @@ describe("validate-version.js", () => {
     });
   });
 
-  it("falla si package-lock.json.version no coincide", () => {
+  it("falla si src/version.ts no coincide con package.json", () => {
     writeFixture(tempRoot, "1.1.1");
 
     expect(validateVersion(tempRoot).mismatches).toContainEqual([
-      "package-lock.json",
+      "src/version.ts",
       "1.1.1",
     ]);
   });
 
-  it('falla si package-lock.json packages[""].version no coincide', () => {
+  it("falla si src/swagger.yaml no coincide con package.json", () => {
     writeFixture(tempRoot, "1.1.2", "1.1.1");
 
     expect(validateVersion(tempRoot).mismatches).toContainEqual([
-      'package-lock.json packages[""]',
+      "src/swagger.yaml",
       "1.1.1",
     ]);
+  });
+
+  it("no valida package-lock.json (proyecto usa pnpm)", () => {
+    writeFixture(tempRoot);
+    // Aunque exista un package-lock.json con versión incorrecta, no debe fallar
+    fs.writeFileSync(
+      path.join(tempRoot, "package-lock.json"),
+      JSON.stringify({ version: "0.0.0" })
+    );
+
+    expect(validateVersion(tempRoot).mismatches).toHaveLength(0);
   });
 });
