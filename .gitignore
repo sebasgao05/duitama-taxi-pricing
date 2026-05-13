@@ -1,6 +1,9 @@
 # Dependencias
 node_modules/
 
+# Lockfile de npm — este proyecto usa pnpm, no npm
+package-lock.json
+
 # Build
 dist/
 

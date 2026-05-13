@@ -1,3 +1,11 @@
+/**
+ * validate-version.js
+ * Verifica que la versión en package.json esté sincronizada con
+ * src/version.ts y src/swagger.yaml.
+ * El lockfile (pnpm-lock.yaml) es gestionado por pnpm y no contiene
+ * la versión del proyecto, por lo que no se valida aquí.
+ */
+
 const fs = require("fs");
 const path = require("path");
 
@@ -7,7 +15,6 @@ function validateVersion(projectRoot = root) {
   const read = (file) => fs.readFileSync(path.join(projectRoot, file), "utf8");
 
   const packageJson = JSON.parse(read("package.json"));
-  const packageLock = JSON.parse(read("package-lock.json"));
   const versionSource = read("src/version.ts");
   const swagger = read("src/swagger.yaml");
 
@@ -16,8 +23,6 @@ function validateVersion(projectRoot = root) {
 
   const expected = packageJson.version;
   const mismatches = [
-    ["package-lock.json", packageLock.version],
-    ['package-lock.json packages[""]', packageLock.packages?.[""]?.version],
     ["src/version.ts", appVersion],
     ["src/swagger.yaml", swaggerVersion],
   ].filter(([, value]) => value !== expected);
@@ -29,14 +34,14 @@ if (require.main === module) {
   const { expected, mismatches } = validateVersion();
 
   if (mismatches.length > 0) {
-    console.error(`Version mismatch. package.json is ${expected}.`);
+    console.error(`Versión inconsistente. package.json tiene: ${expected}`);
     for (const [file, value] of mismatches) {
-      console.error(`- ${file}: ${value || "not found"}`);
+      console.error(`  ✗ ${file}: ${value || "no encontrado"}`);
     }
     process.exit(1);
   }
 
-  console.log(`Version metadata is consistent: ${expected}`);
+  console.log(`✓ Versión consistente en todos los archivos: ${expected}`);
 }
 
 module.exports = { validateVersion };

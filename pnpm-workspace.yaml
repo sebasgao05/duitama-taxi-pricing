@@ -1,0 +1,11 @@
+# pnpm-workspace.yaml
+# Configuración del workspace para pnpm 11.
+#
+# allowBuilds: lista blanca de dependencias autorizadas a ejecutar
+# build scripts (postinstall, etc.) durante la instalación.
+# pnpm 11 bloquea todos los build scripts por defecto como medida de seguridad.
+# Solo se aprueba lo estrictamente necesario y auditado.
+allowBuilds:
+  # Dependencia transitiva de herramientas de resolución de módulos.
+  # Compila binarios nativos en la instalación — auditado y aprobado.
+  unrs-resolver: true

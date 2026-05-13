@@ -1,3 +1,9 @@
+/**
+ * sync-version.js
+ * Propaga la versión de package.json a src/version.ts y src/swagger.yaml.
+ * No toca ningún lockfile (pnpm-lock.yaml es gestionado por pnpm).
+ */
+
 const fs = require("fs");
 const path = require("path");
 
@@ -12,7 +18,7 @@ function writeIfChanged(filePath, content) {
 
 function replaceRequired(content, pattern, replacement, file) {
   if (!pattern.test(content)) {
-    throw new Error(`No se encontro version para actualizar en ${file}.`);
+    throw new Error(`No se encontró versión para actualizar en ${file}.`);
   }
   return content.replace(pattern, replacement);
 }
@@ -23,18 +29,10 @@ function syncVersion(projectRoot = root) {
   const version = packageJson.version;
 
   if (typeof version !== "string" || version.length === 0) {
-    throw new Error("package.json no tiene una version valida.");
+    throw new Error("package.json no tiene una versión válida.");
   }
 
-  const packageLockPath = resolve("package-lock.json");
-  const packageLock = JSON.parse(fs.readFileSync(packageLockPath, "utf8"));
-  if (!packageLock.packages || !packageLock.packages[""]) {
-    throw new Error('package-lock.json no tiene packages[""] para actualizar.');
-  }
-  packageLock.version = version;
-  packageLock.packages[""].version = version;
-  writeIfChanged(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`);
-
+  // Sincronizar src/version.ts
   const versionTsPath = resolve("src/version.ts");
   const versionTs = fs.readFileSync(versionTsPath, "utf8");
   writeIfChanged(
@@ -47,6 +45,7 @@ function syncVersion(projectRoot = root) {
     )
   );
 
+  // Sincronizar src/swagger.yaml
   const swaggerPath = resolve("src/swagger.yaml");
   const swagger = fs.readFileSync(swaggerPath, "utf8");
   writeIfChanged(
@@ -64,7 +63,7 @@ function syncVersion(projectRoot = root) {
 
 if (require.main === module) {
   const version = syncVersion();
-  console.log(`Version synchronized: ${version}`);
+  console.log(`Versión sincronizada: ${version}`);
 }
 
 module.exports = { syncVersion };

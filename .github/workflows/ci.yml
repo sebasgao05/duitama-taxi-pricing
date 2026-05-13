@@ -11,7 +11,6 @@ on:
 jobs:
   release-metadata:
     runs-on: ubuntu-latest
-    # En pull_request_target usamos el código base (main), no la rama del PR
     outputs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
@@ -31,7 +30,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    # Evitar doble ejecución: si es PR normal no correr pull_request_target y viceversa
     if: |
       (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
       (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]') ||
@@ -39,7 +37,6 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      # Para pull_request_target de Dependabot hacemos checkout del HEAD del PR de forma segura
       - name: Checkout PR head (Dependabot)
         if: github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]'
         uses: actions/checkout@v6
@@ -50,14 +47,28 @@ jobs:
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v6
 
+      # setup-node primero — pnpm 11 requiere Node >=22.13
+      # pnpm/action-setup tiene una fase pre que usa el Node del sistema,
+      # por eso instalamos pnpm via corepack después de tener Node 24 activo.
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run validate:version
-      - run: npm run build:lambda
-      - run: npm run test:coverage
+
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
+
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run validate:version
+      - run: pnpm run build:lambda
+      - run: pnpm run test:coverage
       - name: Upload coverage
         if: env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v5
@@ -68,7 +79,6 @@ jobs:
   deploy-qa:
     needs: test
     runs-on: ubuntu-latest
-    # PRs normales (no Dependabot) y PRs de Dependabot via pull_request_target
     if: |
       (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
@@ -87,9 +97,20 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build:lambda
+
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
+
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -99,7 +120,6 @@ jobs:
       - run: sam build --skip-pull-image
       - run: sam deploy --config-env qa
 
-  # Auto-merge del PR de Dependabot solo si QA pasó
   auto-merge-dependabot:
     needs: deploy-qa
     runs-on: ubuntu-latest
@@ -114,7 +134,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --auto
 
-  # Bump de versión PATCH automático cuando Dependabot mergea a main
   bump-patch-dependabot:
     runs-on: ubuntu-latest
     if: |
@@ -128,20 +147,31 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
+
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
+
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
       - name: Bump patch version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm run version:patch
-          git add package.json package-lock.json
-          # Incluir src/version.ts si existe (sync-version.js lo actualiza)
-          git diff --cached --name-only | grep -q "src/version.ts" || true
+          pnpm run version:patch
+          git add package.json
           git add src/version.ts 2>/dev/null || true
+          git add src/swagger.yaml 2>/dev/null || true
           NEW_VERSION=$(node -p "require('./package.json').version")
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git push origin main
@@ -153,12 +183,24 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v6
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build:lambda
+
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
+
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -177,12 +219,24 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build:lambda
+
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
+
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
