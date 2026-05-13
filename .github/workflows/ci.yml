@@ -10,8 +10,7 @@ on:
 
 jobs:
   release-metadata:
-    runs-on: ubuntu-24.04
-    # En pull_request_target usamos el código base (main), no la rama del PR
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
@@ -30,8 +29,7 @@ jobs:
           fi
 
   test:
-    runs-on: ubuntu-24.04
-    # Evitar doble ejecución: si es PR normal no correr pull_request_target y viceversa
+    runs-on: ubuntu-latest
     if: |
       (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
       (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]') ||
@@ -39,7 +37,6 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      # Para pull_request_target de Dependabot hacemos checkout del HEAD del PR de forma segura
       - name: Checkout PR head (Dependabot)
         if: github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]'
         uses: actions/checkout@v6
@@ -50,15 +47,17 @@ jobs:
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v6
 
-      # pnpm 11 requiere Node >=22.13 — setup-node debe ir ANTES de pnpm/action-setup
+      # setup-node primero — pnpm 11 requiere Node >=22.13
+      # pnpm/action-setup tiene una fase pre que usa el Node del sistema,
+      # por eso instalamos pnpm via corepack después de tener Node 24 activo.
       - uses: actions/setup-node@v6
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-          run_install: false
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
 
       - name: Configurar cache de pnpm
         uses: actions/setup-node@v6
@@ -79,8 +78,7 @@ jobs:
 
   deploy-qa:
     needs: test
-    runs-on: ubuntu-24.04
-    # PRs normales (no Dependabot) y PRs de Dependabot via pull_request_target
+    runs-on: ubuntu-latest
     if: |
       (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
@@ -100,10 +98,10 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-          run_install: false
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
 
       - name: Configurar cache de pnpm
         uses: actions/setup-node@v6
@@ -122,10 +120,9 @@ jobs:
       - run: sam build --skip-pull-image
       - run: sam deploy --config-env qa
 
-  # Auto-merge del PR de Dependabot solo si QA pasó
   auto-merge-dependabot:
     needs: deploy-qa
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]'
     permissions:
       pull-requests: write
@@ -137,9 +134,8 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --auto
 
-  # Bump de versión PATCH automático cuando Dependabot mergea a main
   bump-patch-dependabot:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: |
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
@@ -156,10 +152,10 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-          run_install: false
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
 
       - name: Configurar cache de pnpm
         uses: actions/setup-node@v6
@@ -182,7 +178,7 @@ jobs:
 
   deploy-staging:
     needs: test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: staging
     steps:
@@ -192,10 +188,10 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-          run_install: false
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
 
       - name: Configurar cache de pnpm
         uses: actions/setup-node@v6
@@ -216,7 +212,7 @@ jobs:
 
   deploy-production:
     needs: [deploy-staging, release-metadata]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.release-metadata.outputs.is_prerelease == 'false'
     environment: production
     permissions:
@@ -228,10 +224,10 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-          run_install: false
+      - name: Instalar pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.1.1 --activate
 
       - name: Configurar cache de pnpm
         uses: actions/setup-node@v6
@@ -262,7 +258,7 @@ jobs:
 
   create-prerelease:
     needs: [deploy-staging, release-metadata]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.release-metadata.outputs.is_prerelease == 'true'
     permissions:
       contents: write
@@ -286,7 +282,7 @@ jobs:
 
   create-release:
     needs: [deploy-production, release-metadata]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.release-metadata.outputs.is_prerelease == 'false'
     permissions:
       contents: write
