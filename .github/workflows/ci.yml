@@ -10,7 +10,7 @@ on:
 
 jobs:
   release-metadata:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # En pull_request_target usamos el código base (main), no la rama del PR
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -30,7 +30,7 @@ jobs:
           fi
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Evitar doble ejecución: si es PR normal no correr pull_request_target y viceversa
     if: |
       (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
@@ -79,7 +79,7 @@ jobs:
 
   deploy-qa:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # PRs normales (no Dependabot) y PRs de Dependabot via pull_request_target
     if: |
       (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository) ||
@@ -125,7 +125,7 @@ jobs:
   # Auto-merge del PR de Dependabot solo si QA pasó
   auto-merge-dependabot:
     needs: deploy-qa
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]'
     permissions:
       pull-requests: write
@@ -139,7 +139,7 @@ jobs:
 
   # Bump de versión PATCH automático cuando Dependabot mergea a main
   bump-patch-dependabot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
@@ -182,7 +182,7 @@ jobs:
 
   deploy-staging:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: staging
     steps:
@@ -216,7 +216,7 @@ jobs:
 
   deploy-production:
     needs: [deploy-staging, release-metadata]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.release-metadata.outputs.is_prerelease == 'false'
     environment: production
     permissions:
@@ -262,7 +262,7 @@ jobs:
 
   create-prerelease:
     needs: [deploy-staging, release-metadata]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.release-metadata.outputs.is_prerelease == 'true'
     permissions:
       contents: write
@@ -286,7 +286,7 @@ jobs:
 
   create-release:
     needs: [deploy-production, release-metadata]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.release-metadata.outputs.is_prerelease == 'false'
     permissions:
       contents: write
