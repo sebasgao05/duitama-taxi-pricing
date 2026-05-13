@@ -50,11 +50,18 @@ jobs:
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v6
 
+      # pnpm 11 requiere Node >=22.13 — setup-node debe ir ANTES de pnpm/action-setup
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - uses: pnpm/action-setup@v4
         with:
+          version: 11.1.1
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -89,11 +96,17 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - uses: pnpm/action-setup@v4
         with:
+          version: 11.1.1
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -139,11 +152,17 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - uses: pnpm/action-setup@v4
         with:
+          version: 11.1.1
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -169,11 +188,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - uses: pnpm/action-setup@v4
         with:
+          version: 11.1.1
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -199,11 +224,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - uses: pnpm/action-setup@v4
         with:
+          version: 11.1.1
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - name: Configurar cache de pnpm
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
