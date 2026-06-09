@@ -34,7 +34,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.161",
+    "@types/aws-lambda": "^8.10.162",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/morgan": "^1.9.10",
