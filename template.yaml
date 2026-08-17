@@ -26,6 +26,12 @@ Globals:
       Variables:
         NODE_ENV: !Ref NodeEnv
         CACHE_TTL: !Ref CacheTtl
+    Tags:
+      Project: duitama-taxi-pricing
+      Environment: !Ref NodeEnv
+      Owner: sebasgao05
+      ManagedBy: SAM
+      Service: taxi-pricing-api
   Api:
     OpenApiVersion: 3.0.1
 
@@ -34,6 +40,12 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref NodeEnv
+      Tags:
+        Project: duitama-taxi-pricing
+        Environment: !Ref NodeEnv
+        Owner: sebasgao05
+        ManagedBy: SAM
+        Service: taxi-pricing-api
       BinaryMediaTypes:
         - "*/*"
       CacheClusterEnabled: !If [IsCacheEnabled, true, false]
