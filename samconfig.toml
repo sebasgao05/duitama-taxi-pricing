@@ -11,6 +11,7 @@ resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
 parameter_overrides = "NodeEnv=qa CacheEnabled=false CacheTtl=0"
+tags = "Project=duitama-taxi-pricing Environment=qa Owner=sebasgao05 ManagedBy=SAM Service=taxi-pricing-api"
 
 [staging.global.parameters]
 stack_name = "duitama-taxi-pricing-staging"
@@ -23,6 +24,7 @@ resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
 parameter_overrides = "NodeEnv=staging CacheEnabled=false CacheTtl=0"
+tags = "Project=duitama-taxi-pricing Environment=staging Owner=sebasgao05 ManagedBy=SAM Service=taxi-pricing-api"
 
 [production.global.parameters]
 stack_name = "duitama-taxi-pricing-production"
@@ -35,3 +37,4 @@ resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
 parameter_overrides = "NodeEnv=production CacheEnabled=true CacheTtl=600"
+tags = "Project=duitama-taxi-pricing Environment=production Owner=sebasgao05 ManagedBy=SAM Service=taxi-pricing-api"
